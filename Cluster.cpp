@@ -66,3 +66,31 @@ double Cluster::dummy() {
 
     return ret;
 }
+
+void Cluster::MetropolisStep() {
+    static double beta = 100;
+
+    Cluster candidate(this->n);
+    for(int i = 0; i<this->n; i++){
+        std::vector<double> r = this->config[i].GetR();
+        candidate.config[i].SetR(r[0], r[1], r[2]);
+    }
+
+    if(candidate.ComputeEnergy() < this->energy){
+        this->config = candidate.config;
+        this->energy = candidate.energy;
+        //Debug message
+        //std::cout << "Metropolis: Config has been accepted." << std::endl;
+    }
+    else{
+        if(misc::SimpleRandom() < exp(-beta * (candidate.energy - this->energy))){
+            this->config = candidate.config;
+            this->energy = candidate.energy;
+            //Debug message
+            //std::cout << "Metropolis: Config has been accepted." << std::endl;
+        }
+    }
+
+
+
+}

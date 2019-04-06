@@ -12,7 +12,8 @@
 class Cluster {
 private:
     std::vector<Dipole> config;
-    double n, diam;
+    int n;
+    double diam;
     double energy;
 public:
     Cluster(int n);
@@ -22,6 +23,8 @@ public:
 
     double ComputeEnergy();
     double dummy();
+    
+    void MetropolisStep();
 };
 
 

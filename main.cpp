@@ -6,17 +6,23 @@
 int main() {
     srand(time(NULL));
 
-    int N = 1000;
+    int N = 8;
     Cluster c(N);
     for(int i = 0; i<N; i++){
         Dipole* d = c.GetDipole(i);
-        d->SetM(0, 0);
         d->SetR(0, 0, i);
     }
 
     double e = c.ComputeEnergy();
-    std::cout << e << std::endl;
+    std::cout << "Energy of the configuration in the beginning: " << e << std::endl;
 
-    std::cout << "Hello, World!" << std::endl;
+    for(int i = 0; i<10000; i++){
+        c.MetropolisStep();
+    }
+
+    std::cout << "Energy of the configuration after 1000 Steps: " << c.ComputeEnergy() << std::endl;
+
+    c.Print();
+
     return 0;
 }
