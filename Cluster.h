@@ -7,12 +7,11 @@
 
 
 #include <vector>
-#include <memory>
 #include "Dipole.h"
 
 class Cluster {
 private:
-    std::shared_ptr< std::vector<Dipole> > config;
+    std::vector<Dipole> config;
     int n;
     double diam;
     double energy;
