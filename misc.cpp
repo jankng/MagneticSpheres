@@ -6,11 +6,11 @@
 #include <cstdlib>
 #include <iostream>
 
-double misc::SimpleRandom() {
+double misc::random_simple() {
     return (double) rand() / RAND_MAX;
 }
 
-double misc::DotProduct(std::vector<double> u, std::vector<double> v) {
+double misc::dot_product(std::vector<double> u, std::vector<double> v) {
     if(u.size() != v.size()){
         std::cout << "Vectors are not of same dimension!" << std::endl;
         return 0;

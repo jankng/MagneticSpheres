@@ -3,4 +3,4 @@ project(MagneticSpheres)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(MagneticSpheres main.cpp Dipole.cpp Dipole.h misc.cpp misc.h Cluster.cpp Cluster.h)
+add_executable(MagneticSpheres main.cpp dipole.cpp dipole.h misc.cpp misc.h cluster.cpp cluster.h Metropolis.cpp Metropolis.h)

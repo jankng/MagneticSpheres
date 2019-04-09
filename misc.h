@@ -10,13 +10,13 @@
 class misc {
 public:
 
-    static double DotProduct(std::vector<double> u, std::vector<double> v);
+    static double dot_product(std::vector<double> u, std::vector<double> v);
 
     // functions for random numbers
 
 
     // uniformly distributed number in [0, 1]
-    static double SimpleRandom();
+    static double random_simple();
 };
 
 
