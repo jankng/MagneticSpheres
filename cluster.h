@@ -27,10 +27,11 @@ private:
 
     // makers for shapes
     void make_chain();
+    void make_cube();
     void make_other();
 public:
     // create cluster from given config
-    explicit cluster(std::vector<dipole> config);
+    explicit cluster(const std::vector<dipole> &config);
 
     // generate random cluster of cluster_size n
     explicit cluster(int n);

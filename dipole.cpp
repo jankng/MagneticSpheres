@@ -41,7 +41,7 @@ void dipole::print() {
 
 }
 
-double dipole::distance_to(dipole v) {
+double dipole::distance_to(const dipole& v) {
     double x = this->r[0] - v.r[0];
     double y = this->r[1] - v.r[1];
     double z = this->r[2] - v.r[2];
@@ -58,7 +58,7 @@ std::vector<double> dipole::get_r() {
 
 }
 
-std::vector<double> dipole::vector_to(dipole v) {
+std::vector<double> dipole::vector_to(const dipole& v) {
     std::vector<double> ret;
     ret.reserve(3);
     ret.push_back(v.r[0] - this->r[0]);
@@ -69,9 +69,9 @@ std::vector<double> dipole::vector_to(dipole v) {
 }
 
 void dipole::set_r_random() {
-    double x = MAX_RANDOM_R * misc::random_simple();
-    double y = MAX_RANDOM_R * misc::random_simple();
-    double z = MAX_RANDOM_R * misc::random_simple();
+    double x = DIPOLE_MAX_RANDOM_R * misc::random_simple();
+    double y = DIPOLE_MAX_RANDOM_R * misc::random_simple();
+    double z = DIPOLE_MAX_RANDOM_R * misc::random_simple();
     set_r(x, y, z);
 }
 
@@ -81,7 +81,7 @@ void dipole::set_m_random() {
     set_m(phi, theta);
 }
 
-dipole::dipole(std::vector<double> r) {
+dipole::dipole(const std::vector<double> &r) {
     set_m_random();
     this->r = r;
 }
@@ -89,5 +89,11 @@ dipole::dipole(std::vector<double> r) {
 dipole::dipole(double x, double y, double z){
     set_m_random();
     set_r(x, y, z);
+}
+
+dipole::dipole(double x, double y, double z, double phi, double theta) {
+    set_r(x, y, z);
+    set_m(phi, theta);
+
 }
 

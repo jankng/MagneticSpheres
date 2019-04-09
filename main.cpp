@@ -5,12 +5,19 @@
 #include "metropolis.h"
 
 int main() {
-    srand(time(NULL));
+    srand(time(nullptr));
 
-    cluster c(10, chain);
+    std::vector<dipole> config = {};
+    int N = 1000;
+    for(int i = 0; i<N; i++){
+        dipole d(0, 0, i, 0, 0);
+        config.emplace_back(d);
+    }
+
+    cluster c(config);
     c.print();
 
-    metropolis m(10);
+    std::cout << "Energy of c: " << c.compute_energy() << std::endl;
 
     return 0;
 }

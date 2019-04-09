@@ -6,11 +6,12 @@
 #include <cstdlib>
 #include <iostream>
 
+// TODO better random_simple() implementation
 double misc::random_simple() {
     return (double) rand() / RAND_MAX;
 }
 
-double misc::dot_product(std::vector<double> u, std::vector<double> v) {
+double misc::dot_product(const std::vector<double>& u, const std::vector<double>& v) {
     if(u.size() != v.size()){
         std::cout << "Vectors are not of same dimension!" << std::endl;
         return 0;

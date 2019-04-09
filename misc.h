@@ -10,7 +10,7 @@
 class misc {
 public:
 
-    static double dot_product(std::vector<double> u, std::vector<double> v);
+    static double dot_product(const std::vector<double>& u, const std::vector<double>& v);
 
     // functions for random numbers
 
