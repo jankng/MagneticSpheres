@@ -3,6 +3,7 @@
 #include "dipole.h"
 #include "cluster.h"
 #include "metropolis.h"
+#include <gsl/gsl_sf_bessel.h>
 
 int main() {
     srand(time(nullptr));
@@ -18,6 +19,9 @@ int main() {
     c.print();
 
     std::cout << "Energy of c: " << c.compute_energy() << std::endl;
+
+    std::cout << gsl_sf_bessel_J0(5.0) << std::endl;
+    
 
     return 0;
 }
