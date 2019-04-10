@@ -69,9 +69,9 @@ std::vector<double> dipole::vector_to(const dipole& v) {
 }
 
 void dipole::set_r_random() {
-    double x = DIPOLE_MAX_RANDOM_R * misc::random_simple();
-    double y = DIPOLE_MAX_RANDOM_R * misc::random_simple();
-    double z = DIPOLE_MAX_RANDOM_R * misc::random_simple();
+    double x = (int) (DIPOLE_MAX_RANDOM_R * misc::random_simple());
+    double y = (int) (DIPOLE_MAX_RANDOM_R * misc::random_simple());
+    double z = (int) (DIPOLE_MAX_RANDOM_R * misc::random_simple());
     set_r(x, y, z);
 }
 

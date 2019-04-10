@@ -15,6 +15,7 @@ typedef enum{
     cube,
     chain,
     ring,
+    plane,
     other
 } shape;
 
@@ -28,6 +29,7 @@ private:
     // makers for shapes
     void make_chain();
     void make_cube();
+    void make_plane();
     void make_other();
 public:
     // create cluster from given config

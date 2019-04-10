@@ -1,12 +1,16 @@
 #include <iostream>
-#include <cstdlib>
 #include "dipole.h"
 #include "cluster.h"
 #include "metropolis.h"
-#include <gsl/gsl_sf_bessel.h>
+#include "misc.h"
+
+double efunc(void* xp){
+    return ((cluster*) xp)->compute_energy();
+}
 
 int main() {
-    srand(time(nullptr));
+
+    misc::new_rng();
 
     std::vector<dipole> config = {};
     int N = 1000;
@@ -15,13 +19,17 @@ int main() {
         config.emplace_back(d);
     }
 
-    cluster c(config);
-    c.print();
+    cluster ideal(config);
+    cluster rnd(N, chain);
+    cluster rndc(N);
 
-    std::cout << "Energy of c: " << c.compute_energy() << std::endl;
+    std::cout << "Energy of ideal chain of length " << N << ": " << ideal.compute_energy() << std::endl;
+    std::cout << "Energy of random chain of length " << N << ": " << rnd.compute_energy() << std::endl;
+    std::cout << "Energy of random cluster of size " << N << ": " << rndc.compute_energy() << std::endl;
 
-    std::cout << gsl_sf_bessel_J0(5.0) << std::endl;
-    
+    rndc.print();
 
+
+    misc::delete_rng();
     return 0;
 }

@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#define DIPOLE_MAX_RANDOM_R 1
+#define DIPOLE_MAX_RANDOM_R 100
 #define DIPOLE_DEFAULT_M 1
 
 class dipole {
@@ -25,7 +25,7 @@ public:
     dipole();
     // generates dipole with random m
     dipole(double x, double y, double z);
-    explicit dipole(const std::vector<double> &r); // TODO look up why 'explicit'
+    explicit dipole(const std::vector<double> &r);
 
     // creates dipole with all DOFs defined
     dipole(double x, double y, double z, double phi, double theta);
