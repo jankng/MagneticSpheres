@@ -77,7 +77,7 @@ void dipole::set_r_random() {
 
 void dipole::set_m_random() {
     double phi = 2*M_PI * misc::random_simple();
-    double theta = M_PI * misc::random_simple();
+    double theta = acos(1 - 2 * misc::random_simple());
     set_m(phi, theta);
 }
 
