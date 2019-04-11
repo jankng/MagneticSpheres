@@ -30,7 +30,7 @@ double misc::dot_product(const std::vector<double>& u, const std::vector<double>
 void misc::new_rng() {
     const gsl_rng_type * T;
     gsl_rng_env_setup();
-    T = gsl_rng_default;
+    T = gsl_rng_mt19937;
     class_r = gsl_rng_alloc (T);
 
     // seed with time
