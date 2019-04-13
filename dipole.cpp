@@ -13,6 +13,9 @@ dipole::dipole() {
 }
 
 void dipole::set_r(double x, double y, double z) {
+    this->x = x;
+    this->y = y;
+    this->z = z;
     r = {x, y, z};
 }
 
@@ -27,6 +30,8 @@ void dipole::set_m(double phi, double theta, double m_length) {
         return;
     }
 
+    this->phi = phi;
+    this->theta = theta;
 
     m = {
             m_length * (sin(theta) * cos(phi)),
@@ -42,11 +47,11 @@ void dipole::print() {
 }
 
 double dipole::distance_to(const dipole& v) {
-    double x = this->r[0] - v.r[0];
-    double y = this->r[1] - v.r[1];
-    double z = this->r[2] - v.r[2];
+    double x1 = this->r[0] - v.r[0];
+    double y1 = this->r[1] - v.r[1];
+    double z1 = this->r[2] - v.r[2];
 
-    return sqrt(x*x + y*y + z*z);
+    return sqrt(x1*x1 + y1*y1 + z1*z1);
 }
 
 std::vector<double> dipole::get_m() {
@@ -69,21 +74,21 @@ std::vector<double> dipole::vector_to(const dipole& v) {
 }
 
 void dipole::set_r_random() {
-    double x = (int) (DIPOLE_MAX_RANDOM_R * misc::random_simple());
-    double y = (int) (DIPOLE_MAX_RANDOM_R * misc::random_simple());
-    double z = (int) (DIPOLE_MAX_RANDOM_R * misc::random_simple());
-    set_r(x, y, z);
+    double x1 = (int) (DIPOLE_MAX_RANDOM_R * misc::random_simple());
+    double y1 = (int) (DIPOLE_MAX_RANDOM_R * misc::random_simple());
+    double z1 = (int) (DIPOLE_MAX_RANDOM_R * misc::random_simple());
+    set_r(x1, y1, z1);
 }
 
 void dipole::set_m_random() {
-    double phi = 2*M_PI * misc::random_simple();
-    double theta = acos(1 - 2 * misc::random_simple());
-    set_m(phi, theta);
+    double phi1 = 2*M_PI * misc::random_simple();
+    double theta1 = acos(1 - 2 * misc::random_simple());
+    set_m(phi1, theta1);
 }
 
 dipole::dipole(const std::vector<double> &r) {
-    set_m_random();
-    this->r = r;
+    set_r(r[0], r[1], r[2]);
+    set_m(r[3], r[4]);
 }
 
 dipole::dipole(double x, double y, double z){
@@ -95,5 +100,22 @@ dipole::dipole(double x, double y, double z, double phi, double theta) {
     set_r(x, y, z);
     set_m(phi, theta);
 
+}
+
+dipole dipole::dipole_in_direction(const std::vector<double> &dir) {
+    double new_x = this->x + dir[0];
+    double new_y = this->y + dir[1];
+    double new_z = this->z + dir[2];
+    double new_phi = this->phi + dir[3];
+    double new_theta = this->theta + dir[4];
+
+    std::vector<double> coords = {new_x, new_y, new_z, new_phi, new_theta};
+
+    return dipole(coords);
+}
+
+std::vector<double> dipole::get_angles() {
+    std::vector<double> ang = {phi, theta};
+    return ang;
 }
 

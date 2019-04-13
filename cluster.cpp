@@ -3,20 +3,21 @@
 //
 #include <iostream>
 #include <cmath>
+#include <limits>
 #include "cluster.h"
 #include "misc.h"
 
 cluster::cluster(int n) {
     cluster_shape = other;
     this->cluster_size = n;
-    this->diameter = DEFAULT_DIAMETER;
+    this->diameter = CLUSTER_DEFAULT_DIAMETER;
     make_other();
 }
 
 cluster::cluster(int n, shape s){
     cluster_shape = s;
     this->cluster_size = n;
-    this->diameter = DEFAULT_DIAMETER;
+    this->diameter = CLUSTER_DEFAULT_DIAMETER;
     // TODO implement more shapes
     if(s == chain)
         make_chain();
@@ -84,9 +85,11 @@ double cluster::compute_energy() {
             std::vector<double> rij = config[i].vector_to(config[j]);
             double r = config[i].distance_to(config[j]);
 
-            //debug info
-            if(r < diameter)
-                std::cout << "Spheres crashed into each other" << std::endl;
+            //TODO define out of bounds properly
+            if(r < diameter || r > 1000) {
+                //std::cout << "Spheres crashed into each other" << std::endl;
+                return std::numeric_limits<double>::max();
+            }
 
             ret += (misc::dot_product(mi, mj) - 3* misc::dot_product(mi, rij)* misc::dot_product(mj, rij) / pow(r, 2))
                     / pow(r, 3);
@@ -105,7 +108,7 @@ dipole* cluster::get_dipole_by_ref(int id) {
 cluster::cluster(const std::vector<dipole> &config) {
     cluster_shape = other;
     this->cluster_size = config.size();
-    this->diameter = DEFAULT_DIAMETER;
+    this->diameter = CLUSTER_DEFAULT_DIAMETER;
     this->config = config;
 
 }
@@ -137,4 +140,12 @@ void cluster::make_plane() {
             config.emplace_back(d);
         }
     }
+}
+
+cluster::cluster(const cluster &ori) {
+    config = ori.config;
+    cluster_shape = ori.cluster_shape;
+    cluster_size = ori.cluster_size;
+    diameter = ori.diameter;
+
 }

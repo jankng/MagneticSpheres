@@ -7,12 +7,12 @@
 
 #include <vector>
 
-#define DIPOLE_MAX_RANDOM_R 100
+#define DIPOLE_MAX_RANDOM_R 10
 #define DIPOLE_DEFAULT_M 1
 
 class dipole {
 private:
-    //double x, y, z, phi, theta;
+    double x, y, z, phi, theta;
     std::vector<double> r, m;
 
     //setters for internal use in constructor only
@@ -25,18 +25,20 @@ public:
     dipole();
     // generates dipole with random m
     dipole(double x, double y, double z);
-    explicit dipole(const std::vector<double> &r);
 
     // creates dipole with all DOFs defined
     dipole(double x, double y, double z, double phi, double theta);
+    explicit dipole(const std::vector<double>& coords);
 
     //getters
     std::vector<double> get_r();
     std::vector<double> get_m();
+    std::vector<double> get_angles();
 
     // mathematical properties
     double distance_to(const dipole& v);
     std::vector<double> vector_to(const dipole& v);
+    dipole dipole_in_direction(const std::vector<double>& dir);
 
     //output
     void print();

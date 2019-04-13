@@ -9,7 +9,7 @@
 #include <vector>
 #include "dipole.h"
 
-#define DEFAULT_DIAMETER 1
+#define CLUSTER_DEFAULT_DIAMETER 1
 
 typedef enum{
     cube,
@@ -41,10 +41,13 @@ public:
     //generate certain shape with random m
     cluster(int n, shape s);
 
+    //copy constructor
+    cluster(const cluster& ori);
+
     //getters
     std::vector<dipole> get_config(){return config;}
-    double get_size(){return cluster_size;}
-    double get_shape(){return cluster_shape;}
+    int get_size(){return cluster_size;}
+    shape get_shape(){return cluster_shape;}
     dipole* get_dipole_by_ref(int id);
 
     void print();
