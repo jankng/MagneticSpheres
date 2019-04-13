@@ -10,4 +10,4 @@ add_executable(MagneticSpheres main.cpp dipole.cpp dipole.h misc.cpp misc.h clus
 set(GSL_PATH ../dependencies/gsl)
 include_directories(${GSL_PATH}/include)
 link_directories(${GSL_PATH}/bin)
-target_link_libraries(MagneticSpheres gsl gslcblas)
+target_link_libraries(MagneticSpheres gsl gslcblas pthread)

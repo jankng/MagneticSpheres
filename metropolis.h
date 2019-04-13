@@ -25,4 +25,18 @@ public:
 };
 
 
+#include <gsl/gsl_siman.h>
+
+    void
+    gsl_siman_solve_debug (const gsl_rng * r, void *x0_p, gsl_siman_Efunc_t Ef,
+                     gsl_siman_step_t take_step,
+                     gsl_siman_metric_t distance,
+                     gsl_siman_print_t print_position,
+                     gsl_siman_copy_t copyfunc,
+                     gsl_siman_copy_construct_t copy_constructor,
+                     gsl_siman_destroy_t destructor,
+                     size_t element_size,
+                     gsl_siman_params_t params);
+
+
 #endif //MAGNETICSPHERES_METROPOLIS_H

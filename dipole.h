@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#define DIPOLE_MAX_RANDOM_R 10
+#define DIPOLE_MAX_RANDOM_R 5
 #define DIPOLE_DEFAULT_M 1
 
 class dipole {
@@ -20,6 +20,7 @@ private:
     void set_r_random();
     void set_m(double phi, double theta, double m_length = DIPOLE_DEFAULT_M);
     void set_m_random();
+
 public:
     // generates dipole with random r and m
     dipole();
@@ -39,6 +40,7 @@ public:
     double distance_to(const dipole& v);
     std::vector<double> vector_to(const dipole& v);
     dipole dipole_in_direction(const std::vector<double>& dir);
+    bool is_in_bounds();
 
     //output
     void print();

@@ -7,7 +7,27 @@
 #include <gsl/gsl_randist.h>
 #include <cmath>
 #include <cstring>
+#include <thread>
 
+void cp (void *source, void *dest){
+    cluster* s = (cluster*) source;
+    cluster* d = (cluster*) dest;
+
+    *d = *s;
+}
+
+void * cp_const (void *xp){
+    cluster* x = (cluster*) xp;
+    cluster* y = new cluster;
+
+    *y = *x;
+    return y;
+}
+
+void dest (void *xp){
+    cluster* x = (cluster*) xp;
+    delete x;
+}
 
 double E1(void* xp){
     cluster* c = (cluster*) xp;
@@ -92,22 +112,7 @@ void P1(void* xp){
     std::cout << " x=" << "somewhere" << " ";
 }
 
-int main() {
-
-    //std::cout << acos(100) << std::endl;
-
-    misc::new_rng();
-
-    /*
-    std::vector<dipole> ds;
-    ds.reserve(1000);
-    for(int i = 0; i<1000; i++){
-        ds.emplace_back(dipole(0, 0, i, 0, 0));
-    }
-    cluster test(ds);
-    std::cout << test.compute_energy() << std::endl;
-    */
-
+void doStuff(){
     const gsl_rng_type* T;
     gsl_rng* r;
 
@@ -116,12 +121,41 @@ int main() {
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, time(nullptr));
 
-    cluster x_initial(8);
-    gsl_siman_params_t params = {0, 1000, 5.0, 1.0, 0.01, 1.01, 0.001};
-    gsl_siman_solve(r, &x_initial, E1, S1, nullptr, P1, nullptr, nullptr, nullptr, sizeof(cluster), params);
+    cluster* x_initial = new cluster(8);
+    // tries, steps/temp, max step, k, temp init, temp cooldown, temp min
+    // best so far: gsl_siman_params_t params = {0, 1000, 5.0, 1.0, 10, 1.01, 0.001};
+    gsl_siman_params_t params = {0, 1000, 1.0, 1.0, 10, 1.001, 0.001};
+    gsl_siman_solve_debug(r, x_initial, E1, S1, nullptr, nullptr, cp, cp_const, dest, sizeof(cluster), params);
     gsl_rng_free(r);
 
-    x_initial.print();
+    x_initial->print();
+    std::cout<<x_initial->compute_energy()<<std::endl;
+
+}
+
+int main() {
+
+    //std::cout << acos(100) << std::endl;
+
+    misc::new_rng();
+
+///*
+    std::vector<dipole> ds;
+    ds.reserve(8);
+    for(int i = 0; i<8; i++){
+        ds.emplace_back(dipole(0, 0, i, 0, 0));
+    }
+    cluster test(ds);
+    std::cout << test.compute_energy() << std::endl;
+//*/
+
+    //std::thread one(doStuff);
+    //std::thread two(doStuff);
+    //std::thread three(doStuff);
+
+    //one.join();
+    //two.join();
+    //three.join();
 
     misc::delete_rng();
     return 0;

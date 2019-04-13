@@ -32,6 +32,7 @@ private:
     void make_plane();
     void make_other();
 public:
+    cluster(){}
     // create cluster from given config
     explicit cluster(const std::vector<dipole> &config);
 
