@@ -5,6 +5,8 @@
 #include "misc.h"
 #include <iostream>
 #include <gsl/gsl_rng.h>
+#include <sstream>
+#include <iomanip>
 
 gsl_rng* misc::static_r = nullptr;
 bool misc::r_is_init = false;
@@ -51,4 +53,13 @@ gsl_rng *misc::make_rng() {
 
 bool misc::rng_is_initialized() {
     return r_is_init;
+}
+
+std::string misc::get_time() {
+    auto t = std::time(nullptr);
+    auto tm = *std::localtime(&t);
+    std::stringstream buffer;
+    buffer << std::put_time(&tm, "%Y%m%d%H%M%S");
+
+    return buffer.str();
 }

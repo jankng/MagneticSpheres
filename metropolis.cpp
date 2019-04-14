@@ -123,16 +123,16 @@ void metropolis::doStuff(){
 
     // tries, steps/temp, max step, k, temp init, temp cooldown, temp min
     // best so far: gsl_siman_params_t params = {0, 1000, 5.0, 1.0, 10, 1.01, 0.001};
-    gsl_siman_params_t params = {0, 1000, 1.0, 1.0, 10, 1.1, 0.001};
+    gsl_siman_params_t params = {0, 1000, 1.0, 1.0, 10, 1.001, 0.001};
 
     gsl_edits::gsl_siman_solve(r, cl,
-                               metropolis::energy_func, metropolis::take_step, metropolis::print_state,
+                               metropolis::energy_func, metropolis::take_step, nullptr, //metropolis::print_state,
                                metropolis::copy_func, metropolis::copy_constructor, metropolis::destroy_state,
                                sizeof(cluster), params);
 
 
-    cl->print();
-    std::cout << cl->compute_energy() << std::endl;
+    //cl->print();
+    //std::cout << cl->compute_energy() << std::endl;
 
 }
 

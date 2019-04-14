@@ -37,6 +37,7 @@ public:
     ~metropolis();
 
     double get_energy(){return cluster_energy;}
+    cluster* get_cluster(){return cl;}
 
     void doStuff();
 };

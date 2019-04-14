@@ -6,6 +6,7 @@
 #define MAGNETICSPHERES_MISC_H
 
 #include <vector>
+#include <string>
 #include <gsl/gsl_rng.h>
 
 class misc {
@@ -15,6 +16,9 @@ private:
     static bool r_is_init;
 
 public:
+    // get time string
+    static std::string get_time();
+
     // math functions
     static double dot_product(const std::vector<double>& u, const std::vector<double>& v);
 

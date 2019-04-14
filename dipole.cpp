@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <sstream>
 #include "dipole.h"
 #include "misc.h"
 
@@ -42,7 +43,7 @@ void dipole::set_m(double phi, double theta, double m_length) {
 }
 
 void dipole::print() {
-    std::cout << r[0] << " " << r[1] << " " << r[2] << " " << m[0] << " " << m[1] << " " << m[2] << std::endl;
+    std::cout << to_string(' ') << std::endl;
 
 }
 
@@ -132,5 +133,13 @@ bool dipole::is_in_bounds() {
 
 
     return flag;
+}
+
+std::string dipole::to_string(char sep) {
+    std::stringstream ret;
+    ret << r[0] << sep << r[1] << sep << r[2] << sep
+        << m[0] << sep << m[1] << sep << m[2];
+
+    return ret.str();
 }
 

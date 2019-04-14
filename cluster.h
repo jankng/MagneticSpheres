@@ -8,6 +8,7 @@
 
 #include <vector>
 #include "dipole.h"
+#include "misc.h"
 
 #define CLUSTER_DEFAULT_DIAMETER 1
 
@@ -51,7 +52,10 @@ public:
     shape get_shape(){return cluster_shape;}
     dipole* get_dipole_by_ref(int id);
 
+    //output
     void print();
+    std::string to_string(char sep = ' ');
+    void write_to_file(const std::string& filename = misc::get_time() + ".txt");
 
     // computes energy and sets private 'energy' variable
     double compute_energy();

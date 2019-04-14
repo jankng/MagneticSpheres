@@ -6,6 +6,7 @@
 #define MAGNETICSPHERES_DIPOLE_H
 
 #include <vector>
+#include <string>
 
 #define DIPOLE_MAX_RANDOM_R 5
 #define DIPOLE_DEFAULT_M 1
@@ -43,6 +44,7 @@ public:
     bool is_in_bounds();
 
     //output
+    std::string to_string(char sep = ';');
     void print();
 
 };

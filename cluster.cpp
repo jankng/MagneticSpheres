@@ -4,8 +4,12 @@
 #include <iostream>
 #include <cmath>
 #include <limits>
+#include <sstream>
+#include <fstream>
 #include "cluster.h"
 #include "misc.h"
+
+#define RESULTS_DIR "/home/jan/BACode/MagneticSpheres/results/"
 
 cluster::cluster(int n) {
     cluster_shape = other;
@@ -147,4 +151,23 @@ cluster::cluster(const cluster &ori) {
     cluster_size = ori.cluster_size;
     diameter = ori.diameter;
 
+}
+
+std::string cluster::to_string(char sep) {
+    std::stringstream ret;
+
+    for(int i = 0; i<cluster_size; i++){
+        ret << config[i].to_string(sep) << "\n";
+    }
+
+    return ret.str();
+}
+
+void cluster::write_to_file(const std::string& filename) {
+    std::string path = RESULTS_DIR + filename;
+    std::ofstream handler(path);
+    if(handler.is_open()){
+        handler << to_string();
+        handler.close();
+    }
 }
