@@ -3,7 +3,7 @@ project(MagneticSpheres)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(MagneticSpheres main.cpp dipole.cpp dipole.h misc.cpp misc.h cluster.cpp cluster.h metropolis.cpp metropolis.h)
+add_executable(MagneticSpheres main.cpp dipole.cpp dipole.h misc.cpp misc.h cluster.cpp cluster.h metropolis.cpp metropolis.h gsledits.cpp gsledits.h)
 
 
 # link with gsl library

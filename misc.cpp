@@ -6,11 +6,11 @@
 #include <iostream>
 #include <gsl/gsl_rng.h>
 
-gsl_rng* misc::class_r = nullptr;
+gsl_rng* misc::static_r = nullptr;
+bool misc::r_is_init = false;
 
-// TODO better random_simple() implementation
 double misc::random_simple() {
-    return gsl_rng_uniform(class_r);
+    return gsl_rng_uniform(static_r);
 }
 
 double misc::dot_product(const std::vector<double>& u, const std::vector<double>& v) {
@@ -27,17 +27,28 @@ double misc::dot_product(const std::vector<double>& u, const std::vector<double>
     return ret;
 }
 
-void misc::new_rng() {
+void misc::setup_static_rng() {
     const gsl_rng_type * T;
     gsl_rng_env_setup();
     T = gsl_rng_mt19937;
-    class_r = gsl_rng_alloc (T);
+    static_r = gsl_rng_alloc (T);
 
     // seed with time
-    gsl_rng_set(class_r, time(nullptr));
+    gsl_rng_set(static_r, time(nullptr));
+
+    r_is_init = true;
 
 }
 
-void misc::delete_rng() {
-    gsl_rng_free(class_r);
+void misc::delete_static_rng() {
+    gsl_rng_free(static_r);
+    r_is_init = false;
+}
+
+gsl_rng *misc::make_rng() {
+    return gsl_rng_clone(static_r);
+}
+
+bool misc::rng_is_initialized() {
+    return r_is_init;
 }

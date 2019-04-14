@@ -1,296 +1,142 @@
 //
 // Created by jkoenig on 09/04/19.
 //
+#include <cmath>
+#include <iostream>
+
+#include <gsl/gsl_randist.h>
 
 #include "metropolis.h"
 #include "misc.h"
-#include <cmath>
+#include "gsledits.h"
 
-metropolis::metropolis(int n) {
-    cluster_size = n;
-    step_count = attempt_count = 0;
-    beta = DEFAULT_BETA_START;
+metropolis::metropolis(int n):
+cl(new cluster(8)), cluster_size(n), cluster_energy(cl->compute_energy()), step_count(0), attempt_count(0),
+r(misc::make_rng()){}
 
-    std::shared_ptr<cluster> c = std::make_shared<cluster>(n);
-    cl = c;
+
+void metropolis::copy_func(void *source, void *dest){
+    auto* s = (cluster*) source;
+    auto* d = (cluster*) dest;
+
+    *d = *s;
 }
 
-    /* siman/siman.c
- *
- * Copyright (C) 2007 Brian Gough
- * Copyright (C) 1996, 1997, 1998, 1999, 2000 Mark Galassi
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or (at
- * your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+void * metropolis::copy_constructor(void *xp){
+    auto* x = (cluster*) xp;
+    auto* y = new cluster;
 
-#include <stdio.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
+    *y = *x;
+    return y;
+}
 
-#include <gsl/gsl_machine.h>
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_siman.h>
-#include <iostream>
+void metropolis::destroy_state(void *xp){
+    auto* x = (cluster*) xp;
+    delete x;
+}
 
-static inline double
-    boltzmann(double E, double new_E, double T, gsl_siman_params_t *params)
-    {
-        double x = -(new_E - E) / (params->k * T);
-        /* avoid underflow errors for large uphill steps */
-        return (x < GSL_LOG_DBL_MIN) ? 0.0 : exp(x);
+double metropolis::energy_func(void *xp){
+    auto* c = (cluster*) xp;
+    return c->compute_energy();
+}
+
+double metropolis::mod1(double x){
+    x = fmod(x, 0.99);
+    if(x < 0)
+        x = x + 1;
+    return x;
+}
+
+void metropolis::take_step(const gsl_rng *r, void *xp, double step_size){
+    // set up boilerplate
+    auto* c = (cluster*) xp;
+    double d_size = gsl_rng_uniform(r) * step_size;
+
+    // delta of coordinates
+    int n_of_coords = c->get_size() * 5;
+    std::vector<double> delta_coords;
+    delta_coords.reserve(n_of_coords);
+
+    //new config will be stored here
+    std::vector<dipole> new_config;
+    new_config.reserve(c->get_size());
+
+    // generate distance vector and norm square
+    double d_squared = 0;
+    for(int i = 0; i<n_of_coords; i++) {
+        double rnd = gsl_ran_gaussian(r, 1.0);
+        delta_coords.emplace_back(rnd);
+        d_squared += pow(rnd, 2);
     }
 
-    static inline void
-    copy_state(void *src, void *dst, size_t size, gsl_siman_copy_t copyfunc)
-    {
-        if (copyfunc) {
-            copyfunc(src, dst);
-        } else {
-            memcpy(dst, src, size);
-        }
+    // normalize distance vector
+    double d = sqrt(d_squared);
+    for(int i = 0; i<n_of_coords; i++){
+        delta_coords[i] = (delta_coords[i] * d_size) / d;
     }
 
-/* implementation of a basic simulated annealing algorithm */
+    // generate step
+    int j = 0;
+    for(int i = 0; i<n_of_coords; i+=5){
+        // old coords and angs
+        std::vector<double> xyz = c->get_dipole_by_ref(j)->get_r();
+        std::vector<double> angs = c->get_dipole_by_ref(j)->get_angles();
 
-    void
-    gsl_siman_solve_debug (const gsl_rng * r, void *x0_p, gsl_siman_Efunc_t Ef,
-                     gsl_siman_step_t take_step,
-                     gsl_siman_metric_t distance,
-                     gsl_siman_print_t print_position,
-                     gsl_siman_copy_t copyfunc,
-                     gsl_siman_copy_construct_t copy_constructor,
-                     gsl_siman_destroy_t destructor,
-                     size_t element_size,
-                     gsl_siman_params_t params)
-    {
-        void *x, *new_x, *best_x;
-        double E, new_E, best_E;
-        int i;
-        double T, T_factor;
-        int n_evals = 1, n_iter = 0, n_accepts, n_rejects, n_eless;
+        //get new angs
+        double phi_gen = angs[0] / (2.0*M_PI) + delta_coords[i+3];
+        phi_gen = mod1(phi_gen);
 
-        /* this function requires that either the dynamic functions (copy,
-           copy_constructor and destrcutor) are passed, or that an element
-           size is given */
-        assert((copyfunc != NULL && copy_constructor != NULL && destructor != NULL)
-               || (element_size != 0));
+        double theta_gen = 0.5*(1.0-cos(angs[1])) + delta_coords[i+4];
+        theta_gen = mod1(theta_gen);
 
-        distance = 0 ; /* This parameter is not currently used */
-        E = Ef(x0_p);
+        //set up new coords
+        std::vector<double> new_coords = {
+                xyz[0] + delta_coords[i+0],
+                xyz[1] + delta_coords[i+1],
+                xyz[2] + delta_coords[i+2],
+                2.0*M_PI*phi_gen,
+                acos(1.0-2.0*theta_gen)
+        };
 
-        if (copyfunc) {
-            x = copy_constructor(x0_p);
-            new_x = copy_constructor(x0_p);
-            best_x = copy_constructor(x0_p);
-        } else {
-            x = (void *) malloc (element_size);
-            memcpy (x, x0_p, element_size);
-            new_x = (void *) malloc (element_size);
-            best_x =  (void *) malloc (element_size);
-            memcpy (best_x, x0_p, element_size);
-        }
+        //debug block
+        if(new_coords[3] > 2*M_PI || new_coords[4] > M_PI)
+            std::cout << "break" << std::endl;
 
-        best_E = E;
+        // add new coords to new config
+        new_config.emplace_back(dipole(new_coords));
 
-        T = params.t_initial;
-        T_factor = 1.0 / params.mu_t;
-
-        if (print_position) {
-            printf ("#-iter  #-evals   temperature     position   energy\n");
-        }
-
-        n_accepts = 0;
-        n_rejects = 0;
-        n_eless = 0;
-        while (1) {
-
-
-            for (i = 0; i < params.iters_fixed_T; ++i) {
-
-                copy_state(x, new_x, element_size, copyfunc);
-
-                take_step (r, new_x, params.step_size);
-                new_E = Ef (new_x);
-
-                if(new_E <= best_E){
-                    if (copyfunc) {
-                        copyfunc(new_x,best_x);
-                    } else {
-                        memcpy (best_x, new_x, element_size);
-                    }
-                    best_E=new_E;
-                    ++n_eless;
-                }
-
-                ++n_evals;                /* keep track of Ef() evaluations */
-                /* now take the crucial step: see if the new point is accepted
-                   or not, as determined by the boltzmann probability */
-                if (new_E < E) {
-
-                    if (new_E < best_E) {
-                        copy_state(new_x, best_x, element_size, copyfunc);
-                        best_E = new_E;
-                    }
-
-                    /* yay! take a step */
-                    copy_state(new_x, x, element_size, copyfunc);
-                    E = new_E;
-
-                } else if (gsl_rng_uniform(r) < boltzmann(E, new_E, T, &params)) {
-                    /* yay! take a step */
-                    copy_state(new_x, x, element_size, copyfunc);
-                    E = new_E;
-                    ++n_accepts;
-
-                } else {
-                    ++n_rejects;
-                }
-            }
-
-            if (print_position) {
-                /* see if we need to print stuff as we go */
-                /*       printf("%5d %12g %5d %3d %3d %3d", n_iter, T, n_evals, */
-                /*           100*n_eless/n_steps, 100*n_accepts/n_steps, */
-                /*           100*n_rejects/n_steps); */
-                printf ("%5d   %7d  %12g", n_iter, n_evals, T);
-                print_position (x);
-                printf ("  %12g  %12g\n", E, best_E);
-            }
-
-            /* apply the cooling schedule to the temperature */
-            /* FIXME: I should also introduce a cooling schedule for the iters */
-            T *= T_factor;
-            ++n_iter;
-            if (T < params.t_min) {
-                break;
-            }
-
-            //copyfunc(best_x, x);
-
-        }
-
-        /* at the end, copy the result onto the initial point, so we pass it
-           back to the caller */
-        //copy_state(best_x, x0_p, element_size, copyfunc);
-        copyfunc(best_x, x0_p);
-
-        if (copyfunc) {
-            destructor(x);
-            destructor(new_x);
-            destructor(best_x);
-        } else {
-            free (x);
-            free (new_x);
-            free (best_x);
-        }
-
-        std::cout << n_eless << "   " << n_accepts << std::endl;
+        j++;
     }
 
-/* implementation of a simulated annealing algorithm with many tries */
+    *c = cluster(new_config);
 
-    void
-    gsl_siman_solve_many (const gsl_rng * r, void *x0_p, gsl_siman_Efunc_t Ef,
-                          gsl_siman_step_t take_step,
-                          gsl_siman_metric_t distance,
-                          gsl_siman_print_t print_position,
-                          size_t element_size,
-                          gsl_siman_params_t params)
-    {
-        /* the new set of trial points, and their energies and probabilities */
-        void *x, *new_x;
-        double *energies, *probs, *sum_probs;
-        double Ex;                    /* energy of the chosen point */
-        double T, T_factor;           /* the temperature and a step multiplier */
-        int i;
-        double u;                     /* throw the die to choose a new "x" */
-        int n_iter;
+    //std::cout << "" << std::endl;
 
-        if (print_position) {
-            printf ("#-iter    temperature       position");
-            printf ("         delta_pos        energy\n");
-        }
+}
 
-        x = (void *) malloc (params.n_tries * element_size);
-        new_x = (void *) malloc (params.n_tries * element_size);
-        energies = (double *) malloc (params.n_tries * sizeof (double));
-        probs = (double *) malloc (params.n_tries * sizeof (double));
-        sum_probs = (double *) malloc (params.n_tries * sizeof (double));
+void metropolis::print_state(void* xp){
+    auto* c = (cluster*) xp;
+    std::cout << " e=" << c->compute_energy() << " ";
+}
 
-        T = params.t_initial;
-        T_factor = 1.0 / params.mu_t;
+void metropolis::doStuff(){
 
-        memcpy (x, x0_p, element_size);
+    // tries, steps/temp, max step, k, temp init, temp cooldown, temp min
+    // best so far: gsl_siman_params_t params = {0, 1000, 5.0, 1.0, 10, 1.01, 0.001};
+    gsl_siman_params_t params = {0, 1000, 1.0, 1.0, 10, 1.1, 0.001};
 
-        n_iter = 0;
-        while (1)
-        {
-            Ex = Ef (x);
-            for (i = 0; i < params.n_tries - 1; ++i)
-            {                       /* only go to N_TRIES-2 */
-                /* center the new_x[] around x, then pass it to take_step() */
-                sum_probs[i] = 0;
-                memcpy ((char *)new_x + i * element_size, x, element_size);
-                take_step (r, (char *)new_x + i * element_size, params.step_size);
-                energies[i] = Ef ((char *)new_x + i * element_size);
-                probs[i] = boltzmann(Ex, energies[i], T, &params);
-            }
-            /* now add in the old value of "x", so it is a contendor */
-            memcpy ((char *)new_x + (params.n_tries - 1) * element_size, x, element_size);
-            energies[params.n_tries - 1] = Ex;
-            probs[params.n_tries - 1] = boltzmann(Ex, energies[i], T, &params);
+    gsl_edits::gsl_siman_solve(r, cl,
+                               metropolis::energy_func, metropolis::take_step, metropolis::print_state,
+                               metropolis::copy_func, metropolis::copy_constructor, metropolis::destroy_state,
+                               sizeof(cluster), params);
 
-            /* now throw biased die to see which new_x[i] we choose */
-            sum_probs[0] = probs[0];
-            for (i = 1; i < params.n_tries; ++i)
-            {
-                sum_probs[i] = sum_probs[i - 1] + probs[i];
-            }
-            u = gsl_rng_uniform (r) * sum_probs[params.n_tries - 1];
-            for (i = 0; i < params.n_tries; ++i)
-            {
-                if (u < sum_probs[i])
-                {
-                    memcpy (x, (char *) new_x + i * element_size, element_size);
-                    break;
-                }
-            }
-            if (print_position)
-            {
-                printf ("%5d\t%12g\t", n_iter, T);
-                print_position (x);
-                printf ("\t%12g\t%12g\n", distance (x, x0_p), Ex);
-            }
-            T *= T_factor;
-            ++n_iter;
-            if (T < params.t_min)
-            {
-                break;
-            }
-        }
 
-        /* now return the value via x0_p */
-        memcpy (x0_p, x, element_size);
+    cl->print();
+    std::cout << cl->compute_energy() << std::endl;
 
-        /*  printf("the result is: %g (E=%g)\n", x, Ex); */
+}
 
-        free (x);
-        free (new_x);
-        free (energies);
-        free (probs);
-        free (sum_probs);
-    }
+metropolis::~metropolis() {
+    delete this->cl;
+    gsl_rng_free(this->r);
+}

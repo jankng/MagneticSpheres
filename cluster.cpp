@@ -85,7 +85,6 @@ double cluster::compute_energy() {
             std::vector<double> rij = config[i].vector_to(config[j]);
             double r = config[i].distance_to(config[j]);
 
-            //TODO define out of bounds properly
             if(r < diameter || !(config[i].is_in_bounds()) || !(config[j].is_in_bounds())) {
                 //std::cout << "Spheres crashed into each other" << std::endl;
                 return std::numeric_limits<double>::max();
