@@ -9,7 +9,7 @@
 #include "cluster.h"
 #include "misc.h"
 
-#define RESULTS_DIR "/home/jan/BACode/MagneticSpheres/results/"
+#define RESULTS_DIR "/bigwork/jkoenig/results/stepsize5/"
 
 cluster::cluster(int n) {
     cluster_shape = other;

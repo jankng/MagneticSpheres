@@ -47,8 +47,9 @@ void misc::delete_static_rng() {
     r_is_init = false;
 }
 
-gsl_rng *misc::make_rng() {
-    return gsl_rng_clone(static_r);
+// TODO DO NOT CLONE!
+gsl_rng *misc::get_static_rng() {
+    return static_r;
 }
 
 bool misc::rng_is_initialized() {

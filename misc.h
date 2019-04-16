@@ -25,7 +25,7 @@ public:
     // functions for random numbers
     static void setup_static_rng();
     static void delete_static_rng();
-    static gsl_rng* make_rng();
+    static gsl_rng* get_static_rng();
     static bool rng_is_initialized();
 
     // uniformly distributed number in [0, 1]

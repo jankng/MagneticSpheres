@@ -11,8 +11,19 @@
 #include "gsledits.h"
 
 metropolis::metropolis(int n):
-cl(new cluster(8)), cluster_size(n), cluster_energy(cl->compute_energy()), step_count(0), attempt_count(0),
-r(misc::make_rng()){}
+        r(misc::get_static_rng()), cl(new cluster(8)), cluster_size(n),
+        params{0, ITERS_FIXED_T, STEP_SIZE, 1.0, INITIAL_T, MU_T, T_MIN},
+        verbose(false){}
+
+metropolis::metropolis(cluster* cluster_given):
+        r(misc::get_static_rng()), cl(cluster_given), cluster_size(cl->get_size()),
+        params{0, ITERS_FIXED_T, STEP_SIZE, 1.0, INITIAL_T, MU_T, T_MIN},
+        verbose(false){}
+
+metropolis::metropolis(cluster* cluster_given, gsl_siman_params_t params_given):
+        r(misc::get_static_rng()), cl(cluster_given), cluster_size(cl->get_size()),
+        params(params_given),
+        verbose(false){}
 
 
 void metropolis::copy_func(void *source, void *dest){
@@ -98,10 +109,6 @@ void metropolis::take_step(const gsl_rng *r, void *xp, double step_size){
                 acos(1.0-2.0*theta_gen)
         };
 
-        //debug block
-        if(new_coords[3] > 2*M_PI || new_coords[4] > M_PI)
-            std::cout << "break" << std::endl;
-
         // add new coords to new config
         new_config.emplace_back(dipole(new_coords));
 
@@ -110,33 +117,31 @@ void metropolis::take_step(const gsl_rng *r, void *xp, double step_size){
 
     *c = cluster(new_config);
 
-    //std::cout << "" << std::endl;
-
 }
 
 void metropolis::print_state(void* xp){
     auto* c = (cluster*) xp;
-    std::cout << " e=" << c->compute_energy() << " ";
+    std::cout << " x=" << "somewhere" << " ";
 }
 
-void metropolis::doStuff(){
+void metropolis::start_siman(){
 
     // tries, steps/temp, max step, k, temp init, temp cooldown, temp min
     // best so far: gsl_siman_params_t params = {0, 1000, 5.0, 1.0, 10, 1.01, 0.001};
-    gsl_siman_params_t params = {0, 1000, 1.0, 1.0, 10, 1.001, 0.001};
+    if(verbose)
+        gsl_edits::gsl_siman_solve(r, cl,
+                                   metropolis::energy_func, metropolis::take_step, metropolis::print_state,
+                                   metropolis::copy_func, metropolis::copy_constructor, metropolis::destroy_state,
+                                   sizeof(cluster), params);
+    else
+        gsl_edits::gsl_siman_solve(r, cl,
+                                   metropolis::energy_func, metropolis::take_step, nullptr,
+                                   metropolis::copy_func, metropolis::copy_constructor, metropolis::destroy_state,
+                                   sizeof(cluster), params);
 
-    gsl_edits::gsl_siman_solve(r, cl,
-                               metropolis::energy_func, metropolis::take_step, nullptr, //metropolis::print_state,
-                               metropolis::copy_func, metropolis::copy_constructor, metropolis::destroy_state,
-                               sizeof(cluster), params);
-
-
-    //cl->print();
-    //std::cout << cl->compute_energy() << std::endl;
 
 }
 
 metropolis::~metropolis() {
     delete this->cl;
-    gsl_rng_free(this->r);
 }

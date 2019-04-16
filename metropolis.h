@@ -11,15 +11,20 @@
 
 #include "cluster.h"
 
-#define DEFAULT_BETA_START 1
+#define ITERS_FIXED_T 1000
+#define STEP_SIZE 0.1
+#define INITIAL_T 10
+#define MU_T 1.001
+#define T_MIN 0.0005
 
 class metropolis {
 private:
+    gsl_rng* r;
     cluster* cl;
     int cluster_size;
-    double cluster_energy;
-    int step_count, attempt_count;
-    gsl_rng* r;
+    gsl_siman_params_t params;
+    bool verbose;
+
 
     // helper functions needed for GSL
     static void copy_func(void *source, void *dest);
@@ -34,12 +39,16 @@ private:
 
 public:
     explicit metropolis(int n); // generates random cluster with n spheres
+    explicit metropolis(cluster* cluster_given); // takes pregenerated cluster
+    metropolis(cluster* cluster_given, gsl_siman_params_t params_given);
     ~metropolis();
 
-    double get_energy(){return cluster_energy;}
     cluster* get_cluster(){return cl;}
 
-    void doStuff();
+    void start_siman();
+
+    void enable_verbose_mode(){verbose = true;}
+    void disable_verbose_mode(){verbose = false;}
 };
 
 

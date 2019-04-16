@@ -124,11 +124,11 @@ bool dipole::is_in_bounds() {
     bool flag = true;
 
 
-    if(r[0] < 0 || r[0] > 5)
+    if(r[0] < 0 || r[0] > 10)
         flag = false;
-    if(r[1] < 0 || r[1] > 5)
+    if(r[1] < 0 || r[1] > 10)
         flag = false;
-    if(r[2] < 0 || r[2] > 8)
+    if(r[2] < 0 || r[2] > 16)
         flag = false;
 
 
