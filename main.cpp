@@ -52,7 +52,7 @@ int main() {
 
 
 /*
-    std::cout << "stepsize5" << std::endl;
+    std::cout << "stepsize5" < std::endl;
     std::cout << "starting threads..." << std::endl;
     std::thread one(minimize, 1);
     std::thread two(minimize, 2);
@@ -71,11 +71,10 @@ int main() {
     std::cout << gsl_rng_uniform(test) << std::endl;
     */
 
-    metropolis test(&cl);
-    test.enable_verbose_mode();
-    test.start_siman();
 
-    test.get_cluster()->print();
+    cluster one(8, chain);
+    one.write_to_file("test.txt");
+    one.write_to_file("test.txt");
 
     misc::delete_static_rng();
     return 0;

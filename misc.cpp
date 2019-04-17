@@ -60,7 +60,7 @@ std::string misc::get_time() {
     auto t = std::time(nullptr);
     auto tm = *std::localtime(&t);
     std::stringstream buffer;
-    buffer << std::put_time(&tm, "%Y%m%d%H%M%S");
+    buffer << std::put_time(&tm, "%Y-%m-%d-%H-%M-%S");
 
     return buffer.str();
 }

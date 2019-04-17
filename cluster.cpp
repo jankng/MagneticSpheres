@@ -9,7 +9,8 @@
 #include "cluster.h"
 #include "misc.h"
 
-#define RESULTS_DIR "/bigwork/jkoenig/results/stepsize5/"
+//#define RESULTS_DIR "/bigwork/jkoenig/results/stepsize5/"
+#define RESULTS_DIR "/home/jan/Desktop/"
 
 cluster::cluster(int n) {
     cluster_shape = other;
@@ -165,7 +166,7 @@ std::string cluster::to_string(char sep) {
 
 void cluster::write_to_file(const std::string& filename) {
     std::string path = RESULTS_DIR + filename;
-    std::ofstream handler(path);
+    std::ofstream handler(path, std::ios_base::app);
     if(handler.is_open()){
         handler << to_string();
         handler.close();
