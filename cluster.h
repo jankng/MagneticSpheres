@@ -8,13 +8,15 @@
 
 #include <vector>
 #include "dipole.h"
+#include "misc.h"
 
-#define DEFAULT_DIAMETER 1
+#define CLUSTER_DEFAULT_DIAMETER 1
 
 typedef enum{
     cube,
     chain,
     ring,
+    plane,
     other
 } shape;
 
@@ -28,8 +30,10 @@ private:
     // makers for shapes
     void make_chain();
     void make_cube();
+    void make_plane();
     void make_other();
 public:
+    cluster(){}
     // create cluster from given config
     explicit cluster(const std::vector<dipole> &config);
 
@@ -39,13 +43,19 @@ public:
     //generate certain shape with random m
     cluster(int n, shape s);
 
+    //copy constructor
+    cluster(const cluster& ori);
+
     //getters
     std::vector<dipole> get_config(){return config;}
-    double get_size(){return cluster_size;}
-    double get_shape(){return cluster_shape;}
+    int get_size(){return cluster_size;}
+    shape get_shape(){return cluster_shape;}
     dipole* get_dipole_by_ref(int id);
 
+    //output
     void print();
+    std::string to_string(char sep = ' ');
+    void write_to_file(const std::string& filename = misc::get_time() + ".txt");
 
     // computes energy and sets private 'energy' variable
     double compute_energy();

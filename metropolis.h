@@ -6,22 +6,49 @@
 #define MAGNETICSPHERES_METROPOLIS_H
 
 #include <memory>
+
+#include <gsl/gsl_siman.h>
+
 #include "cluster.h"
 
-#define DEFAULT_BETA_START 1
+#define ITERS_FIXED_T 1000
+#define STEP_SIZE 0.1
+#define INITIAL_T 10
+#define MU_T 1.001
+#define T_MIN 0.0005
 
 class metropolis {
 private:
-    std::shared_ptr<cluster> cl;
+    gsl_rng* r;
+    cluster* cl;
     int cluster_size;
-    double beta, energy_current;
-    int step_count, attempt_count;
+    gsl_siman_params_t params;
+    bool verbose;
+
+
+    // helper functions needed for GSL
+    static void copy_func(void *source, void *dest);
+    static void * copy_constructor(void *xp);
+    static void destroy_state(void *xp);
+    static double energy_func(void *xp);
+    static double mod1(double x);
+    static void take_step(const gsl_rng *r, void *xp, double step_size);
+    static void print_state(void* xp);
+
 
 
 public:
     explicit metropolis(int n); // generates random cluster with n spheres
+    explicit metropolis(cluster* cluster_given); // takes pregenerated cluster
+    metropolis(cluster* cluster_given, gsl_siman_params_t params_given);
+    ~metropolis();
 
-    double get_energy(){return energy_current;}
+    cluster* get_cluster(){return cl;}
+
+    void start_siman();
+
+    void enable_verbose_mode(){verbose = true;}
+    void disable_verbose_mode(){verbose = false;}
 };
 
 

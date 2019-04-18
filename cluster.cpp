@@ -3,25 +3,33 @@
 //
 #include <iostream>
 #include <cmath>
+#include <limits>
+#include <sstream>
+#include <fstream>
 #include "cluster.h"
 #include "misc.h"
+
+//#define RESULTS_DIR "/bigwork/jkoenig/results/stepsize5/"
+#define RESULTS_DIR "/home/jan/Desktop/"
 
 cluster::cluster(int n) {
     cluster_shape = other;
     this->cluster_size = n;
-    this->diameter = DEFAULT_DIAMETER;
+    this->diameter = CLUSTER_DEFAULT_DIAMETER;
     make_other();
 }
 
 cluster::cluster(int n, shape s){
     cluster_shape = s;
     this->cluster_size = n;
-    this->diameter = DEFAULT_DIAMETER;
+    this->diameter = CLUSTER_DEFAULT_DIAMETER;
     // TODO implement more shapes
     if(s == chain)
         make_chain();
     else if (s == cube)
         make_cube();
+    else if (s == plane)
+        make_plane();
 }
 
 void cluster::make_chain(){
@@ -33,11 +41,29 @@ void cluster::make_chain(){
     }
 }
 
+// TODO prevent spheres form crashing
 void cluster::make_other(){
     this->config.reserve(cluster_size);
     for(int i = 0; i<cluster_size; i++){
-        dipole tmp;
-        this->config.emplace_back(tmp);
+
+        // prevent crashing
+        bool is_accepted = false;
+        while(!is_accepted){
+            bool flag = true;
+            dipole d;
+            for(int j = 0; j<i; j++) {
+                double dist = d.distance_to(config[j]);
+                if (dist < 1) {
+                    flag = false;
+                    break;
+                }
+            }
+
+            if(flag){
+                is_accepted = true;
+                config.emplace_back(d);
+            }
+        }
     }
 }
 
@@ -50,7 +76,6 @@ void cluster::print() {
 
 }
 
-// TODO dipole moment has to be UNIT SIZE!!!
 double cluster::compute_energy() {
     double ret = 0;
 
@@ -65,11 +90,18 @@ double cluster::compute_energy() {
             std::vector<double> rij = config[i].vector_to(config[j]);
             double r = config[i].distance_to(config[j]);
 
+            if(r < diameter || !(config[i].is_in_bounds()) || !(config[j].is_in_bounds())) {
+                //std::cout << "Spheres crashed into each other" << std::endl;
+                return std::numeric_limits<double>::max();
+            }
+
             ret += (misc::dot_product(mi, mj) - 3* misc::dot_product(mi, rij)* misc::dot_product(mj, rij) / pow(r, 2))
-                    / (pow(r / diameter, 3) * cluster_size);
+                    / pow(r, 3);
         }
     }
 
+    // multiply by 1/(U_up_up * n)
+    ret *= pow(diameter, 3) / (cluster_size * pow(DIPOLE_DEFAULT_M, 2));
     return ret;
 }
 
@@ -80,7 +112,7 @@ dipole* cluster::get_dipole_by_ref(int id) {
 cluster::cluster(const std::vector<dipole> &config) {
     cluster_shape = other;
     this->cluster_size = config.size();
-    this->diameter = DEFAULT_DIAMETER;
+    this->diameter = CLUSTER_DEFAULT_DIAMETER;
     this->config = config;
 
 }
@@ -100,4 +132,43 @@ void cluster::make_cube() {
     // not using pow() because cluster_size is of type int.
     cluster_size = cluster_size * cluster_size * cluster_size;
 
+}
+
+// TODO implement correctly as of rn make_plane == make_other
+void cluster::make_plane() {
+    config.reserve(cluster_size);
+    config = {};
+    for(int i = 0; i<cluster_size; i++){
+        for(int j = 0; j<cluster_size; j++){
+            dipole d;
+            config.emplace_back(d);
+        }
+    }
+}
+
+cluster::cluster(const cluster &ori) {
+    config = ori.config;
+    cluster_shape = ori.cluster_shape;
+    cluster_size = ori.cluster_size;
+    diameter = ori.diameter;
+
+}
+
+std::string cluster::to_string(char sep) {
+    std::stringstream ret;
+
+    for(int i = 0; i<cluster_size; i++){
+        ret << config[i].to_string(sep) << "\n";
+    }
+
+    return ret.str();
+}
+
+void cluster::write_to_file(const std::string& filename) {
+    std::string path = RESULTS_DIR + filename;
+    std::ofstream handler(path, std::ios_base::app);
+    if(handler.is_open()){
+        handler << to_string();
+        handler.close();
+    }
 }
