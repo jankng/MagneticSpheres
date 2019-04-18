@@ -180,7 +180,12 @@ std::vector<double> cluster::compute_energy_gradient() {
     ret.reserve(components);
 
     for(int i = 0; i<cluster_size; i++){
-        ret[i+0] = 0;
+        ret[5*i+0] = gradient_dx(i, 0);
+        ret[5*i+1] = gradient_dx(i, 1);
+        ret[5*i+2] = gradient_dx(i, 2);
+
+        ret[5*i+3] = gradient_dphi(i);
+        ret[5*i+4] = gradient_dtheta(i);
     }
 
     return ret;
@@ -198,8 +203,15 @@ double cluster::gradient_dx(int i, int x) {
             continue;
 
         double r = config[i].distance_to(config[j]);
-        std::vector<double> rij = config[i].vector_to(config[j]);
         std::vector<double> rj = config[j].get_r();
+
+        // check whether spheres crash, if so redefine gradient to avoid collision
+        bool flip = false;
+        if(r < 1){
+            return (rj[x] - ri[x]) / r;
+        }
+
+        std::vector<double> rij = config[i].vector_to(config[j]);
         std::vector<double> mj = config[i].get_m();
         double mjx = mj[x];
 
@@ -224,7 +236,7 @@ double cluster::gradient_dphi(int i) {
                                sin(angsi[1]) * cos(angsi[0]),
                                0};
 
-    for(int j = 0; i<cluster_size; j++){
+    for(int j = 0; j<cluster_size; j++){
         if(i == j)
             continue;
 
@@ -256,7 +268,7 @@ double cluster::gradient_dtheta(int i){
                                cos(angsi[1])*sin(angsi[0]),
                                -1.0*sin(angsi[1])};
 
-    for(int j = 0; i<cluster_size; j++){
+    for(int j = 0; j<cluster_size; j++){
         if(i == j)
             continue;
 
