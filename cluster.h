@@ -32,6 +32,12 @@ private:
     void make_cube();
     void make_plane();
     void make_other();
+
+    // helper functions for gradient
+    double gradient_dx(int i, int x);
+    double gradient_dtheta(int i);
+    double gradient_dphi(int i);
+
 public:
     cluster(){}
     // create cluster from given config
@@ -59,6 +65,7 @@ public:
 
     // computes energy and sets private 'energy' variable
     double compute_energy();
+    std::vector<double> compute_energy_gradient();
 };
 
 

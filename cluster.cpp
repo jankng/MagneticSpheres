@@ -9,8 +9,8 @@
 #include "cluster.h"
 #include "misc.h"
 
-//#define RESULTS_DIR "/bigwork/jkoenig/results/stepsize5/"
-#define RESULTS_DIR "/home/jan/Desktop/"
+#define RESULTS_DIR "/bigwork/jkoenig/results/"
+//#define RESULTS_DIR "/home/jan/Desktop/"
 
 cluster::cluster(int n) {
     cluster_shape = other;
@@ -95,6 +95,7 @@ double cluster::compute_energy() {
                 return std::numeric_limits<double>::max();
             }
 
+            // TODO check diameter implementation
             ret += (misc::dot_product(mi, mj) - 3* misc::dot_product(mi, rij)* misc::dot_product(mj, rij) / pow(r, 2))
                     / pow(r, 3);
         }
@@ -171,4 +172,110 @@ void cluster::write_to_file(const std::string& filename) {
         handler << to_string();
         handler.close();
     }
+}
+
+std::vector<double> cluster::compute_energy_gradient() {
+    int components = cluster_size *5;
+    std::vector<double> ret;
+    ret.reserve(components);
+
+    for(int i = 0; i<cluster_size; i++){
+        ret[i+0] = 0;
+    }
+
+    return ret;
+}
+
+double cluster::gradient_dx(int i, int x) {
+    double res = 0;
+    std::vector<double> ri = config[i].get_r();
+    std::vector<double> mi = config[i].get_m();
+    double rix = ri[x];
+    double mix = mi[x];
+
+    for(int j = 0; j<cluster_size; j++){
+        if(i == j)
+            continue;
+
+        double r = config[i].distance_to(config[j]);
+        std::vector<double> rij = config[i].vector_to(config[j]);
+        std::vector<double> rj = config[j].get_r();
+        std::vector<double> mj = config[i].get_m();
+        double mjx = mj[x];
+
+        double nom = misc::dot_product(mi, mj)*pow(r, 2) - 3*misc::dot_product(mi, rij)* misc::dot_product(mj, rij);
+        double denom = pow(r, -5);
+
+        double d_nom = 2.0*rix*misc::dot_product(mi, mj) - 3.0*(rix*mix*misc::dot_product(mj, rij) + rix*mjx*misc::dot_product(mj, rij));
+        double d_denom = -5.0*rix*pow(r, -7);
+
+        res += nom*d_denom + d_nom*denom;
+    }
+
+    res = res / (cluster_size*pow(diameter, 3));
+    return res;
+}
+
+double cluster::gradient_dphi(int i) {
+    double ret = 0;
+    std::vector<double> ri = config[i].get_r();
+    std::vector<double> angsi = config[i].get_angles();
+    std::vector<double> dmi = {-1.0*sin(angsi[1])*sin(angsi[0]),
+                               sin(angsi[1]) * cos(angsi[0]),
+                               0};
+
+    for(int j = 0; i<cluster_size; j++){
+        if(i == j)
+            continue;
+
+        std::vector<double> angsj = config[j].get_angles();
+        std::vector<double> dmj = {-1.0*sin(angsj[1])*sin(angsj[0]),
+                                   sin(angsj[1]) * cos(angsj[0]),
+                                   0};
+
+
+        std::vector<double> mj = config[j].get_m();
+
+        std::vector<double> rj = config[j].get_r();
+
+        std::vector<double> rij = config[i].vector_to(config[j]);
+        double r = config[i].distance_to(config[j]);
+
+        ret += (misc::dot_product(dmi, mj) - 3* misc::dot_product(dmi, rij)* misc::dot_product(mj, rij) / pow(r, 2))
+               / pow(r, 3);
+    }
+
+    return ret;
+}
+
+double cluster::gradient_dtheta(int i){
+    double ret = 0;
+    std::vector<double> ri = config[i].get_r();
+    std::vector<double> angsi = config[i].get_angles();
+    std::vector<double> dmi = {cos(angsi[1])*cos(angsi[0]),
+                               cos(angsi[1])*sin(angsi[0]),
+                               -1.0*sin(angsi[1])};
+
+    for(int j = 0; i<cluster_size; j++){
+        if(i == j)
+            continue;
+
+        std::vector<double> angsj = config[j].get_angles();
+        std::vector<double> dmj = {cos(angsj[1])*cos(angsj[0]),
+                                   cos(angsj[1])*sin(angsj[0]),
+                                   -1.0*sin(angsj[1])};
+
+
+        std::vector<double> mj = config[j].get_m();
+
+        std::vector<double> rj = config[j].get_r();
+
+        std::vector<double> rij = config[i].vector_to(config[j]);
+        double r = config[i].distance_to(config[j]);
+
+        ret += (misc::dot_product(dmi, mj) - 3* misc::dot_product(dmi, rij)* misc::dot_product(mj, rij) / pow(r, 2))
+               / pow(r, 3);
+    }
+
+    return ret;
 }
