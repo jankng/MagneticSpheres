@@ -4,13 +4,14 @@
 #include <cstring>
 #include <thread>
 #include <string>
+#include <iomanip>
 
 // GSL Headers
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_multimin.h>
-#include <iomanip>
 
 // Project Headers
+#include "definitions.h"
 #include "dipole.h"
 #include "cluster.h"
 #include "metropolis.h"
@@ -51,8 +52,8 @@ my_f (const gsl_vector *v, void *params) {
     config.reserve(v->size / 5);
 
     for(int i = 0; i<v->size; i+=5){
-        double phi = mod1(gsl_vector_get(v, i+3));
-        double theta = mod1(gsl_vector_get(v, i+4));
+        double phi = 2*M_PI*mod1(gsl_vector_get(v, i+3));
+        double theta = M_PI*mod1(gsl_vector_get(v, i+4));
 
         config.emplace_back(dipole(gsl_vector_get(v, i+0),
                                    gsl_vector_get(v, i+1),
@@ -73,19 +74,27 @@ my_df (const gsl_vector *v, void *params,
     config.reserve(v->size / 5);
 
     for(int i = 0; i<v->size; i+=5){
+        double phi = 2*M_PI*mod1(gsl_vector_get(v, i+3));
+        double theta = M_PI*mod1(gsl_vector_get(v, i+4));
+
         config.emplace_back(dipole(gsl_vector_get(v, i+0),
                                    gsl_vector_get(v, i+1),
                                    gsl_vector_get(v, i+2),
-                                   gsl_vector_get(v, i+3),
-                                   gsl_vector_get(v, i+4)));
+                                   phi,
+                                   theta));
     }
 
     cluster cl(config);
-    std::vector<double> grad = cl.compute_energy_gradient();
+    //TODO consider heap allocation
+    std::vector<double> grad;
+    cl.compute_energy_gradient(&grad);
 
     for(int i = 0; i<grad.size(); i++){
         gsl_vector_set(df, i, grad[i]);
     }
+
+    //debug
+    //std::cout << gsl_vector_get(df, 20) << std::endl;
 }
 
 void
@@ -100,6 +109,8 @@ void dosomething(){
     size_t iter = 0;
     int status;
 
+    int spheres = 5;
+
     const gsl_multimin_fdfminimizer_type *T;
     gsl_multimin_fdfminimizer *s;
 
@@ -108,45 +119,47 @@ void dosomething(){
 
     int trash = 0;
 
-    my_func.n = 40;
+    my_func.n = 5*spheres;
     my_func.f = my_f;
     my_func.df = my_df;
     my_func.fdf = my_fdf;
     my_func.params = &trash;
 
-    cluster cl(8);
+    cluster cl(spheres, chain);
     cl.print();
 
-    x = gsl_vector_alloc (40);
-    for(int i = 0; i<8; i++){
+    x = gsl_vector_alloc (5*spheres);
+    for(int i = 0; i<spheres; i++){
         gsl_vector_set(x, 5*i+0, cl.get_dipole_by_ref(i)->get_r().at(0));
         gsl_vector_set(x, 5*i+1, cl.get_dipole_by_ref(i)->get_r().at(1));
         gsl_vector_set(x, 5*i+2, cl.get_dipole_by_ref(i)->get_r().at(2));
 
 
-        gsl_vector_set(x, 5*i+3, cl.get_dipole_by_ref(i)->get_angles().at(0));
-        gsl_vector_set(x, 5*i+4, cl.get_dipole_by_ref(i)->get_angles().at(1));
+        gsl_vector_set(x, 5*i+3, cl.get_dipole_by_ref(i)->get_angles().at(0) / (2*M_PI));
+        gsl_vector_set(x, 5*i+4, cl.get_dipole_by_ref(i)->get_angles().at(1) / M_PI);
     }
 
     T = gsl_multimin_fdfminimizer_conjugate_fr;
-    s = gsl_multimin_fdfminimizer_alloc (T, 40);
+    s = gsl_multimin_fdfminimizer_alloc (T, 5*spheres);
 
-    gsl_multimin_fdfminimizer_set (s, &my_func, x, 0.1, 1e-4);
+    gsl_multimin_fdfminimizer_set (s, &my_func, x, 1, 1e-9);
 
     do
     {
         iter++;
         status = gsl_multimin_fdfminimizer_iterate (s);
 
-        if (status)
+        if (status){
+            std::cout << "error code" << status << std::endl;
             break;
+        }
 
         status = gsl_multimin_test_gradient (s->gradient, 1e-3);
 
         if (status == GSL_SUCCESS)
             printf ("Minimum found at:\n");
 
-        printf ("%5d %.5f %.5f %10.5f\n", iter,
+        printf ("%5d %.5f %.5f %10.5f\n", (int) iter,
                 gsl_vector_get (s->x, 0),
                 gsl_vector_get (s->x, 1),
                 s->f);
@@ -154,21 +167,17 @@ void dosomething(){
     }
     while (status == GSL_CONTINUE && iter < 100);
 
+
+    for(int i = 0; i<s->x->size; i++)
+        std::cout << gsl_vector_get(s->x, i) << std::endl;
+
     gsl_multimin_fdfminimizer_free (s);
+
     gsl_vector_free (x);
 }
 
 int main() {
     misc::setup_static_rng();
-
-
-    std::vector<dipole> ds;
-    ds.reserve(8);
-    for(int i = 0; i<8; i++){
-        ds.emplace_back(dipole(0, 0, i, 0, 0));
-    }
-    cluster cl(16);
-    std::cout << cl.compute_energy() << std::endl;
 
 
 /*

@@ -92,7 +92,7 @@ double cluster::compute_energy() {
 
             if(r < diameter || !(config[i].is_in_bounds()) || !(config[j].is_in_bounds())) {
                 //std::cout << "Spheres crashed into each other" << std::endl;
-                return std::numeric_limits<double>::max();
+                //return std::numeric_limits<double>::max();
             }
 
             // TODO check diameter implementation
@@ -174,21 +174,17 @@ void cluster::write_to_file(const std::string& filename) {
     }
 }
 
-std::vector<double> cluster::compute_energy_gradient() {
+void cluster::compute_energy_gradient(std::vector<double>* ret) {
     int components = cluster_size *5;
-    std::vector<double> ret;
-    ret.reserve(components);
+    ret->reserve(components);
 
     for(int i = 0; i<cluster_size; i++){
-        ret[5*i+0] = gradient_dx(i, 0);
-        ret[5*i+1] = gradient_dx(i, 1);
-        ret[5*i+2] = gradient_dx(i, 2);
-
-        ret[5*i+3] = gradient_dphi(i);
-        ret[5*i+4] = gradient_dtheta(i);
+        ret->emplace_back(gradient_dx(i, 0));
+        ret->emplace_back(gradient_dx(i, 1));
+        ret->emplace_back(gradient_dx(i, 2));
+        ret->emplace_back(gradient_dphi(i));
+        ret->emplace_back(gradient_dtheta(i));
     }
-
-    return ret;
 }
 
 double cluster::gradient_dx(int i, int x) {
