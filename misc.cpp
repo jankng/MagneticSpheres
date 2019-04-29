@@ -7,6 +7,7 @@
 #include <gsl/gsl_rng.h>
 #include <sstream>
 #include <iomanip>
+#include <cmath>
 
 gsl_rng* misc::static_r = nullptr;
 bool misc::r_is_init = false;
@@ -63,4 +64,18 @@ std::string misc::get_time() {
     buffer << std::put_time(&tm, "%Y-%m-%d-%H-%M-%S");
 
     return buffer.str();
+}
+
+double misc::mod1(double x){
+    x = fmod(x, 0.99);
+    if(x < 0)
+        x = x + 1;
+    return x;
+}
+
+double misc::modn(double x, double n) {
+    x = fmod(x, n);
+    if(x < 0)
+        x = x + n;
+    return x;
 }

@@ -17,6 +17,7 @@
 #include "metropolis.h"
 #include "misc.h"
 #include "gsledits.h"
+#include "conjgrad.h"
 
 void minimize(int n){
     double e_min = 0;
@@ -200,8 +201,21 @@ int main() {
     std::cout << gsl_rng_uniform(test) << std::endl;
     */
 
+    int N = 100;
+    std::vector<dipole> conf;
+    for(int i = 0; i<N; i++){
+        dipole dp(0, 0, i, 0, 0);
+        conf.emplace_back(dp);
+    }
 
-    dosomething();
+
+    std::vector<double> buffer;
+    cluster cl(conf);
+    LOG(cl.compute_energy());
+
+    cl.compute_energy_gradient(&buffer);
+    conjgrad cg(&cl);
+    cg.dosomehting();
 
     misc::delete_static_rng();
     return 0;

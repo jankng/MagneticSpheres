@@ -287,3 +287,31 @@ double cluster::gradient_dtheta(int i){
 
     return ret;
 }
+
+void cluster::config_to_vec(std::vector<double>* target) {
+    int size = cluster_size*5;
+    target->clear();
+    target->reserve(size);
+    for(int i = 0; i<cluster_size; i++){
+        std::vector<double> r = config[i].get_r();
+        std::vector<double> angs = config[i].get_angles();
+        target->emplace_back(r[0]);
+        target->emplace_back(r[1]);
+        target->emplace_back(r[2]);
+        target->emplace_back(angs[0]);
+        target->emplace_back(angs[1]);
+    }
+}
+
+cluster::cluster(const std::vector<double> &config) :
+cluster_size(config.size() / 5), diameter(CLUSTER_DEFAULT_DIAMETER), cluster_shape(other){
+    this->config.reserve(cluster_size);
+    for(int i = 0; i<cluster_size; i++){
+        std::vector<double> dp = {config[5*i+0],
+                                  config[5*i+1],
+                                  config[5*i+2],
+                                  misc::modn(5*i+3, 2*M_PI),
+                                  misc::modn(5*i+4, M_PI)};
+        this->config.emplace_back(dipole(dp));
+    }
+}
