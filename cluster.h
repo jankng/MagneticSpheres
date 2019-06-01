@@ -66,7 +66,7 @@ public:
 
     // computes energy and sets private 'energy' variable
     double compute_energy();
-    void compute_energy_gradient(std::vector<double>* ret);
+    void compute_energy_gradient(std::vector<double>* ret, int index);
 };
 
 

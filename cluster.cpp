@@ -90,9 +90,9 @@ double cluster::compute_energy() {
             std::vector<double> rij = config[i].vector_to(config[j]);
             double r = config[i].distance_to(config[j]);
 
-            if(r < diameter || !(config[i].is_in_bounds()) || !(config[j].is_in_bounds())) {
+            if(r + 0.01 < diameter || !(config[i].is_in_bounds()) || !(config[j].is_in_bounds())) {
                 //std::cout << "Spheres crashed into each other" << std::endl;
-                //return std::numeric_limits<double>::max();
+                return std::numeric_limits<double>::max();
             }
 
             // TODO check diameter implementation
@@ -174,16 +174,22 @@ void cluster::write_to_file(const std::string& filename) {
     }
 }
 
-void cluster::compute_energy_gradient(std::vector<double>* ret) {
+void cluster::compute_energy_gradient(std::vector<double>* ret, int index) {
     int components = cluster_size *5;
     ret->reserve(components);
 
     for(int i = 0; i<cluster_size; i++){
-        ret->emplace_back(gradient_dx(i, 0));
-        ret->emplace_back(gradient_dx(i, 1));
-        ret->emplace_back(gradient_dx(i, 2));
-        ret->emplace_back(gradient_dphi(i));
-        ret->emplace_back(gradient_dtheta(i));
+        if(i == index || index < 0) {
+            ret->emplace_back(gradient_dx(i, 0));
+            ret->emplace_back(gradient_dx(i, 1));
+            ret->emplace_back(gradient_dx(i, 2));
+            ret->emplace_back(gradient_dphi(i));
+            ret->emplace_back(gradient_dtheta(i));
+        } else{
+            for(int j = 0; j<5; j++){
+                ret->emplace_back(0.0);
+            }
+        }
     }
 }
 
@@ -203,6 +209,8 @@ double cluster::gradient_dx(int i, int x) {
 
         // check whether spheres crash, if so redefine gradient to avoid collision
         bool flip = false;
+        if(abs(r - 1) < 0.01)
+            return 0;
         if(r < 1){
             return (rj[x] - ri[x]) / r;
         }
@@ -310,8 +318,8 @@ cluster_size(config.size() / 5), diameter(CLUSTER_DEFAULT_DIAMETER), cluster_sha
         std::vector<double> dp = {config[5*i+0],
                                   config[5*i+1],
                                   config[5*i+2],
-                                  misc::modn(5*i+3, 2*M_PI),
-                                  misc::modn(5*i+4, M_PI)};
+                                  misc::modn(config[5*i+3], 2*M_PI),
+                                  misc::modn(config[5*i+4], M_PI)};
         this->config.emplace_back(dipole(dp));
     }
 }

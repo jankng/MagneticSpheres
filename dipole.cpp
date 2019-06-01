@@ -143,3 +143,9 @@ std::string dipole::to_string(char sep) {
     return ret.str();
 }
 
+dipole::dipole(double x, double y, double z, double m1, double m2, double m3) {
+    this->r = {x, y, z};
+    this->m = {m1, m2, m3};
+
+}
+

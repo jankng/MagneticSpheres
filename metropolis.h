@@ -19,6 +19,7 @@
 
 class metropolis {
 private:
+    bool owns_cluster;
     gsl_rng* r;
     cluster* cl;
     int cluster_size;

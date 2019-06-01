@@ -11,17 +11,17 @@
 #include "gsledits.h"
 
 metropolis::metropolis(int n):
-        r(misc::get_static_rng()), cl(new cluster(8)), cluster_size(n),
+        owns_cluster(true), r(misc::get_static_rng()), cl(new cluster(8)), cluster_size(n),
         params{0, ITERS_FIXED_T, STEP_SIZE, 1.0, INITIAL_T, MU_T, T_MIN},
         verbose(false){}
 
 metropolis::metropolis(cluster* cluster_given):
-        r(misc::get_static_rng()), cl(cluster_given), cluster_size(cl->get_size()),
+        owns_cluster(false), r(misc::get_static_rng()), cl(cluster_given), cluster_size(cl->get_size()),
         params{0, ITERS_FIXED_T, STEP_SIZE, 1.0, INITIAL_T, MU_T, T_MIN},
         verbose(false){}
 
 metropolis::metropolis(cluster* cluster_given, gsl_siman_params_t params_given):
-        r(misc::get_static_rng()), cl(cluster_given), cluster_size(cl->get_size()),
+        owns_cluster(false), r(misc::get_static_rng()), cl(cluster_given), cluster_size(cl->get_size()),
         params(params_given),
         verbose(false){}
 
@@ -143,5 +143,6 @@ void metropolis::start_siman(){
 }
 
 metropolis::~metropolis() {
-    delete this->cl;
+    if(owns_cluster)
+        delete this->cl;
 }

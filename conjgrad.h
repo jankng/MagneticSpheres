@@ -9,17 +9,28 @@
 #include "cluster.h"
 #include "dipole.h"
 
+#include <gsl/gsl_multimin.h>
+
 class conjgrad {
 private:
-    cluster* cl;
+    std::vector<double> config;
     std::vector<double> grad;
 
-    // gives energy in direction of gradient
-    double energy_in_grad_dir(double t);
+    void compute_gradient(int i);
+    double compute_energy();
+    double compute_energy_in_direction(double t, const std::vector<double>& dir);
+    double minimize_in_direction(const std::vector<double>& dir);
+    void go_in_direction(double t, const std::vector<double>& dir);
 
 public:
-    explicit conjgrad(cluster* given);
-    void dosomehting();
+    explicit conjgrad(std::vector<double>* conf);
+    explicit conjgrad(int n);
+
+    void minimize_simultaneous();
+
+    void print_energy_in_direction(std::vector<double>* dir);
+
+    void dosomething();
 };
 
 
