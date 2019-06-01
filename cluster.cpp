@@ -80,11 +80,11 @@ double cluster::compute_energy() {
     double ret = 0;
 
     for(int i = 0; i<cluster_size; i++){
-        for(int j = 0; j<i; j++){
-            std::vector<double> mi = config[i].get_m();
-            std::vector<double> mj = config[j].get_m();
+        std::vector<double> ri = config[i].get_r();
+        std::vector<double> mi = config[i].get_m();
 
-            std::vector<double> ri = config[i].get_r();
+        for(int j = 0; j<i; j++){
+            std::vector<double> mj = config[j].get_m();
             std::vector<double> rj = config[j].get_r();
 
             std::vector<double> rij = config[i].vector_to(config[j]);
@@ -99,6 +99,8 @@ double cluster::compute_energy() {
             ret += (misc::dot_product(mi, mj) - 3* misc::dot_product(mi, rij)* misc::dot_product(mj, rij) / pow(r, 2))
                     / pow(r, 3);
         }
+
+        ret += 2*ri[0];
     }
 
     // multiply by 1/(U_up_up * n)

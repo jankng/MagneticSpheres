@@ -151,7 +151,7 @@ void conjmin(cluster* init){
 cluster* make_perfect_chain(int n){
     std::vector<dipole> dps;
     for(int i = 0; i<n; i++){
-        dipole d(0, 0, i, 0, 0);
+        dipole d(3, 0, i, 0, 0);
         dps.emplace_back(d);
     }
 
@@ -182,7 +182,7 @@ int main() {
     //c.minimize_simultaneous();
     //c.dosomething();
 
-    cluster* perfect_chain = new cluster(8);
+    cluster* perfect_chain = make_perfect_chain(8);
     perfect_chain->print();
 
     metropolis m(perfect_chain);
