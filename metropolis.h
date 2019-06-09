@@ -33,8 +33,13 @@ private:
     static void destroy_state(void *xp);
     static double energy_func(void *xp);
     static double mod1(double x);
-    static void take_step(const gsl_rng *r, void *xp, double step_size);
     static void print_state(void* xp);
+
+    // step functions
+    static void take_step(const gsl_rng *r, void *xp, double step_size);
+    static void take_step_no_constraints(const gsl_rng *r, void *xp, double step_size);
+    static void take_step_fixed_ends(const gsl_rng *r, void *xp, double step_size);
+    static void take_step_rigid_body(const gsl_rng *r, void *xp, double step_size);
 
 
 

@@ -59,8 +59,12 @@ double metropolis::mod1(double x){
 }
 
 // original version
-/*
 void metropolis::take_step(const gsl_rng *r, void *xp, double step_size){
+    take_step_rigid_body(r, xp, step_size);
+}
+
+
+void metropolis::take_step_no_constraints(const gsl_rng *r, void *xp, double step_size){
     // set up boilerplate
     auto* c = (cluster*) xp;
     double d_size = gsl_rng_uniform(r) * step_size;
@@ -120,10 +124,10 @@ void metropolis::take_step(const gsl_rng *r, void *xp, double step_size){
     *c = cluster(new_config);
 
 }
-*/
 
-// take stept with fixed first and last dipole
-void metropolis::take_step(const gsl_rng *r, void *xp, double step_size){
+
+// take stept with fixed first and last dipole and symmetries
+void metropolis::take_step_fixed_ends(const gsl_rng *r, void *xp, double step_size){
     // set up boilerplate
     auto* c = (cluster*) xp;
     double d_size = gsl_rng_uniform(r) * step_size;
@@ -190,6 +194,112 @@ void metropolis::take_step(const gsl_rng *r, void *xp, double step_size){
     new_config.emplace_back(end);
     //end change
 
+
+    *c = cluster(new_config);
+
+}
+
+void metropolis::take_step_rigid_body(const gsl_rng *r, void *xp, double step_size){
+    // set up boilerplate
+    auto* c = (cluster*) xp;
+    double d_size = gsl_rng_uniform(r) * step_size;
+
+    // delta of coordinates
+    int n_of_coords = c->get_size() * 5 - 6;
+    std::vector<double> delta_coords;
+    delta_coords.reserve(n_of_coords);
+
+    //new config will be stored here
+    std::vector<dipole> new_config;
+    new_config.reserve(c->get_size());
+
+    // generate distance vector and norm square
+    double d_squared = 0;
+    for(int i = 0; i<n_of_coords; i++) {
+        double rnd = gsl_ran_gaussian(r, 1.0);
+        delta_coords.emplace_back(rnd);
+        d_squared += pow(rnd, 2);
+    }
+
+    // normalize distance vector
+    double d = sqrt(d_squared);
+    for(int i = 0; i<n_of_coords; i++){
+        delta_coords[i] = (delta_coords[i] * d_size) / d;
+    }
+
+    // generate step
+    // begin change
+    for(int i = 0; i<c->get_size(); i++){
+        // old coords and angs
+        std::vector<double> xyz = c->get_dipole_by_ref(i)->get_r();
+        std::vector<double> angs = c->get_dipole_by_ref(i)->get_angles();
+
+        std::vector<double> new_coords;
+
+        //set up new coords
+        // case first sphere
+        if (i == 0){
+            double phi_gen = angs[0] / (2.0*M_PI) + delta_coords[0];
+            phi_gen = mod1(phi_gen);
+
+            double theta_gen = 0.5*(1.0-cos(angs[1])) + delta_coords[1];
+            theta_gen = mod1(theta_gen);
+
+            new_coords = {
+                    xyz[0],
+                    xyz[1],
+                    xyz[2],
+                    2.0*M_PI*phi_gen,
+                    acos(1.0-2.0*theta_gen)
+            };
+
+        } else if(i == 1){
+            double phi_gen = angs[0] / (2.0*M_PI) + delta_coords[3];
+            phi_gen = mod1(phi_gen);
+
+            double theta_gen = 0.5*(1.0-cos(angs[1])) + delta_coords[4];
+            theta_gen = mod1(theta_gen);
+            new_coords = {
+                    xyz[0] + delta_coords[2],
+                    xyz[1],
+                    xyz[2],
+                    2.0*M_PI*phi_gen,
+                    acos(1.0-2.0*theta_gen)
+            };
+        } else if(i == 2){
+            double phi_gen = angs[0] / (2.0*M_PI) + delta_coords[7];
+            phi_gen = mod1(phi_gen);
+
+            double theta_gen = 0.5*(1.0-cos(angs[1])) + delta_coords[8];
+            theta_gen = mod1(theta_gen);
+            new_coords = {
+                    xyz[0] + delta_coords[5],
+                    xyz[1] + delta_coords[6],
+                    xyz[2],
+                    2.0*M_PI*phi_gen,
+                    acos(1.0-2.0*theta_gen)
+            };
+
+        } else{
+            double phi_gen = angs[0] / (2.0*M_PI) + delta_coords[8 + (i-3)*5 + 4];
+            phi_gen = mod1(phi_gen);
+
+            double theta_gen = 0.5*(1.0-cos(angs[1])) + delta_coords[8 + (i-3)*5 + 5];
+            theta_gen = mod1(theta_gen);
+
+            new_coords = {
+                    xyz[0] + delta_coords[8 + (i-3)*5 + 1],
+                    xyz[1] + delta_coords[8 + (i-3)*5 + 2],
+                    xyz[2] + delta_coords[8 + (i-3)*5 + 3],
+                    2.0*M_PI*phi_gen,
+                    acos(1.0-2.0*theta_gen)
+            };
+
+        }
+
+        // add new coords to new config
+        new_config.emplace_back(dipole(new_coords));
+    }
 
     *c = cluster(new_config);
 

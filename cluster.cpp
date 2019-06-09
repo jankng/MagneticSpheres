@@ -77,6 +77,7 @@ void cluster::print() {
 }
 
 double cluster::compute_energy() {
+    double penalty = 1;
     double ret = 0;
 
     for(int i = 0; i<cluster_size; i++){
@@ -90,17 +91,27 @@ double cluster::compute_energy() {
             std::vector<double> rij = config[i].vector_to(config[j]);
             double r = config[i].distance_to(config[j]);
 
-            if(r + 0.01 < diameter || !(config[i].is_in_bounds()) || !(config[j].is_in_bounds())) {
+            if(!(config[i].is_in_bounds()) || !(config[j].is_in_bounds())) {
                 //std::cout << "Spheres crashed into each other" << std::endl;
-                return std::numeric_limits<double>::max();
+                //return std::numeric_limits<double>::max();
             }
+
+            if(r - diameter < 0)
+                ret -= penalty*(r-diameter);
 
             // TODO check diameter implementation
             ret += (misc::dot_product(mi, mj) - 3* misc::dot_product(mi, rij)* misc::dot_product(mj, rij) / pow(r, 2))
                     / pow(r, 3);
         }
 
-        ret += 2*ri[0];
+        ret += 1*ri[2];
+
+        for(int i = 0; i<3; i++){
+            if(ri[i] > 50)
+                ret += penalty*(ri[i] - 50);
+            if(ri[i] < 0)
+                ret -= penalty*ri[i];
+        }
     }
 
     // multiply by 1/(U_up_up * n)
@@ -185,8 +196,10 @@ void cluster::compute_energy_gradient(std::vector<double>* ret, int index) {
             ret->emplace_back(gradient_dx(i, 0));
             ret->emplace_back(gradient_dx(i, 1));
             ret->emplace_back(gradient_dx(i, 2));
-            ret->emplace_back(gradient_dphi(i));
-            ret->emplace_back(gradient_dtheta(i));
+            //ret->emplace_back(gradient_dphi(i));
+            //ret->emplace_back(gradient_dtheta(i));
+            ret->emplace_back(0.0);
+            ret->emplace_back(0.0);
         } else{
             for(int j = 0; j<5; j++){
                 ret->emplace_back(0.0);

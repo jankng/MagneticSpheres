@@ -151,7 +151,7 @@ void conjmin(cluster* init){
 cluster* make_perfect_chain(int n){
     std::vector<dipole> dps;
     for(int i = 0; i<n; i++){
-        dipole d(3, 0, i, 0, 0);
+        dipole d(i, 0, 3, 0, M_PI / 2.0);
         dps.emplace_back(d);
     }
 
@@ -177,22 +177,18 @@ int main() {
 
     cluster cl(conf);
 
-    //conjgrad c(8);
+    conjgrad c(8);
     //c.print_energy_in_direction(nullptr);
     //c.minimize_simultaneous();
     //c.dosomething();
+    c.minimize_simultaneous();
 
-    cluster* perfect_chain = make_perfect_chain(8);
-    perfect_chain->print();
-
-    metropolis m(perfect_chain);
-    m.enable_verbose_mode();
-    m.start_siman();
-
-    perfect_chain->print();
-
-
-    delete perfect_chain;
+    //cluster* chain = make_perfect_chain(8);
+    //chain->print();
+    //metropolis m(chain);
+    //m.enable_verbose_mode();
+    //m.start_siman();
+    //chain->print();
 
     misc::delete_static_rng();
     return 0;
