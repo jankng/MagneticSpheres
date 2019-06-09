@@ -24,6 +24,7 @@ private:
 
 public:
     explicit conjgrad(std::vector<double>* conf);
+    explicit conjgrad(cluster* cl);
     explicit conjgrad(int n);
 
     void minimize_simultaneous();

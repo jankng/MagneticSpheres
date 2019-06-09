@@ -12,6 +12,9 @@
 #define RESULTS_DIR "/bigwork/jkoenig/results/"
 //#define RESULTS_DIR "/home/jan/Desktop/"
 
+#define PENALTY 3
+#define GRAVITATION 0.6
+
 cluster::cluster(int n) {
     cluster_shape = other;
     this->cluster_size = n;
@@ -77,7 +80,7 @@ void cluster::print() {
 }
 
 double cluster::compute_energy() {
-    double penalty = 1;
+    double penalty = PENALTY;
     double ret = 0;
 
     for(int i = 0; i<cluster_size; i++){
@@ -104,7 +107,7 @@ double cluster::compute_energy() {
                     / pow(r, 3);
         }
 
-        ret += 1*ri[2];
+        ret += GRAVITATION*ri[2];
 
         for(int i = 0; i<3; i++){
             if(ri[i] > 50)
@@ -192,14 +195,19 @@ void cluster::compute_energy_gradient(std::vector<double>* ret, int index) {
     ret->reserve(components);
 
     for(int i = 0; i<cluster_size; i++){
-        if(i == index || index < 0) {
+        if(i == 0 || i == cluster_size - 1){
+            for(int j = 0; j<5; j++){
+                ret->emplace_back(0.0);
+            }
+        }
+        else if(i == index || index < 0) {
             ret->emplace_back(gradient_dx(i, 0));
             ret->emplace_back(gradient_dx(i, 1));
             ret->emplace_back(gradient_dx(i, 2));
-            //ret->emplace_back(gradient_dphi(i));
-            //ret->emplace_back(gradient_dtheta(i));
-            ret->emplace_back(0.0);
-            ret->emplace_back(0.0);
+            ret->emplace_back(gradient_dphi(i));
+            ret->emplace_back(gradient_dtheta(i));
+            //ret->emplace_back(0.0);
+            //ret->emplace_back(0.0);
         } else{
             for(int j = 0; j<5; j++){
                 ret->emplace_back(0.0);
@@ -209,6 +217,7 @@ void cluster::compute_energy_gradient(std::vector<double>* ret, int index) {
 }
 
 double cluster::gradient_dx(int i, int x) {
+    double penalty = PENALTY;
     double res = 0;
     std::vector<double> ri = config[i].get_r();
     std::vector<double> mi = config[i].get_m();
@@ -222,13 +231,6 @@ double cluster::gradient_dx(int i, int x) {
         double r = config[i].distance_to(config[j]);
         std::vector<double> rj = config[j].get_r();
 
-        // check whether spheres crash, if so redefine gradient to avoid collision
-        bool flip = false;
-        if(abs(r - 1) < 0.01)
-            return 0;
-        if(r < 1){
-            return (rj[x] - ri[x]) / r;
-        }
 
         std::vector<double> rij = config[i].vector_to(config[j]);
         std::vector<double> mj = config[i].get_m();
@@ -237,13 +239,26 @@ double cluster::gradient_dx(int i, int x) {
         double nom = misc::dot_product(mi, mj)*pow(r, 2) - 3*misc::dot_product(mi, rij)* misc::dot_product(mj, rij);
         double denom = pow(r, -5);
 
-        double d_nom = 2.0*rix*misc::dot_product(mi, mj) - 3.0*(rix*mix*misc::dot_product(mj, rij) + rix*mjx*misc::dot_product(mj, rij));
-        double d_denom = -5.0*rix*pow(r, -7);
+        double d_nom = 2.0*(rj[x] - ri[x])*misc::dot_product(mi, mj) - 3.0*(mix*misc::dot_product(mj, rij) + mjx*misc::dot_product(mj, rij));
+        double d_denom = -5.0*(rj[x] - ri[x])*pow(r, -7);
 
-        res += nom*d_denom + d_nom*denom;
+        res += (nom*d_denom + d_nom*denom) / (2*cluster_size*pow(diameter, 3));
+
+        if(r < diameter)
+            res += -1.0*penalty * (rj[x] - ri[x]) / r;
     }
 
-    res = res / (cluster_size*pow(diameter, 3));
+    //res = res / (cluster_size*pow(diameter, 3));
+
+    if(ri[x] > 50)
+        res += penalty;
+    if(ri[x] < 0)
+        res -= penalty;
+
+    //gravity
+    if(x == 2)
+        res += GRAVITATION;
+
     return res;
 }
 

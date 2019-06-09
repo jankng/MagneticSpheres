@@ -177,11 +177,19 @@ int main() {
 
     cluster cl(conf);
 
-    conjgrad c(8);
+    cluster* chain = make_perfect_chain(8);
+    std::vector<double> grad;
+    chain->compute_energy_gradient(&grad, -1);
+
+    for(int i = 0; i<grad.size(); i+=5){
+        std::cout << grad[i] << " " << grad[i+1] << " " << grad[i+2] << " " << grad[i+3] << " " << grad[i+4] << std::endl;
+    }
+
+    conjgrad c(chain);
     //c.print_energy_in_direction(nullptr);
     //c.minimize_simultaneous();
-    //c.dosomething();
-    c.minimize_simultaneous();
+    c.dosomething();
+    //c.minimize_simultaneous();
 
     //cluster* chain = make_perfect_chain(8);
     //chain->print();

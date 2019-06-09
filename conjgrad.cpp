@@ -7,12 +7,17 @@
 #include <cmath>
 
 conjgrad::conjgrad(std::vector<double>* conf) : config(*conf) {
-
+    compute_gradient(-1);
 }
 
 conjgrad::conjgrad(int n) {
     cluster cl(n);
     cl.config_to_vec(&config);
+    compute_gradient(-1);
+}
+
+conjgrad::conjgrad(cluster* cl){
+    cl->config_to_vec(&config);
     compute_gradient(-1);
 }
 
@@ -40,8 +45,8 @@ double conjgrad::compute_energy_in_direction(double t, const std::vector<double>
 
 void conjgrad::print_energy_in_direction(std::vector<double>* dir) {
     LOG("t \t E(t)");
-    for(int t = 0; t < 10; t++)
-        std::cout << (double) t / 1 << "\t" << compute_energy_in_direction((double) t / 1, *dir) << std::endl;
+    for(int t = -5; t < 6; t++)
+        std::cout << (double) t / 100 << "\t" << compute_energy_in_direction((double) t / 100, *dir) << std::endl;
     //double trash = minimize_in_direction(grad);
 }
 
@@ -53,7 +58,7 @@ double conjgrad::minimize_in_direction(const std::vector<double>& dir) {
     double b = 0;
     double c = 0;
 
-    double s = 1;
+    double s = 0.01;
     double d = s;
     while(true) {
         if (compute_energy_in_direction(d, dir) >= compute_energy_in_direction(a, dir)) {
@@ -66,7 +71,7 @@ double conjgrad::minimize_in_direction(const std::vector<double>& dir) {
     }
 
 
-    while(fmax(c - b, b - a) > 0.01 && steps < 1000){
+    while(fmax(c - b, b - a) > 0.0001 && steps < 1000){
         if(b - a >= c - b){
             x = a + (1.0 - w)*(b - a);
             if(compute_energy_in_direction(b, dir) < compute_energy_in_direction(x, dir)){
@@ -127,12 +132,16 @@ void conjgrad::minimize_simultaneous() {
 void conjgrad::dosomething() {
 
 
-    for(int i = 0; i<1000; i++){
+    for(int i = 0; i<3; i++){
+        cluster cl(config);
+        cl.print();
         print_energy_in_direction(&grad);
         double t = minimize_in_direction(grad);
         go_in_direction(t, grad);
         compute_gradient(-1);
     }
+    cluster cl(config);
+    cl.print();
 
     //print_energy_in_direction(&grad);
 
