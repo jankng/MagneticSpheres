@@ -200,7 +200,7 @@ void cluster::compute_energy_gradient(std::vector<double>* ret, int index) {
                 ret->emplace_back(0.0);
             }
         }
-        else if(i == index || index < 0) {
+        else if(i == index || index == -1) {
             ret->emplace_back(gradient_dx(i, 0));
             ret->emplace_back(gradient_dx(i, 1));
             ret->emplace_back(gradient_dx(i, 2));
@@ -208,6 +208,54 @@ void cluster::compute_energy_gradient(std::vector<double>* ret, int index) {
             ret->emplace_back(gradient_dtheta(i));
             //ret->emplace_back(0.0);
             //ret->emplace_back(0.0);
+        } else{
+            for(int j = 0; j<5; j++){
+                ret->emplace_back(0.0);
+            }
+        }
+    }
+}
+
+void cluster::compute_angle_gradient(std::vector<double>* ret, int index){
+    int components = cluster_size *5;
+    ret->reserve(components);
+
+    for(int i = 0; i<cluster_size; i++){
+        if(i == 0 || i == cluster_size - 1){
+            for(int j = 0; j<5; j++){
+                ret->emplace_back(0.0);
+            }
+        }
+        else if(i == index || index == -1) {
+            ret->emplace_back(0.0);
+            ret->emplace_back(0.0);
+            ret->emplace_back(0.0);
+            ret->emplace_back(gradient_dphi(i));
+            ret->emplace_back(gradient_dtheta(i));
+        } else{
+            for(int j = 0; j<5; j++){
+                ret->emplace_back(0.0);
+            }
+        }
+    }
+}
+
+void cluster::compute_coordinate_gradient(std::vector<double>* ret, int index){
+    int components = cluster_size *5;
+    ret->reserve(components);
+
+    for(int i = 0; i<cluster_size; i++){
+        if(i == 0 || i == cluster_size - 1){
+            for(int j = 0; j<5; j++){
+                ret->emplace_back(0.0);
+            }
+        }
+        else if(i == index || index == -1) {
+            ret->emplace_back(gradient_dx(i, 0));
+            ret->emplace_back(gradient_dx(i, 1));
+            ret->emplace_back(gradient_dx(i, 2));
+            ret->emplace_back(0.0);
+            ret->emplace_back(0.0);
         } else{
             for(int j = 0; j<5; j++){
                 ret->emplace_back(0.0);

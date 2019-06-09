@@ -16,7 +16,7 @@ private:
     std::vector<double> config;
     std::vector<double> grad;
 
-    void compute_gradient(int i);
+    void compute_gradient(int i, int mode);
     double compute_energy();
     double compute_energy_in_direction(double t, const std::vector<double>& dir);
     double minimize_in_direction(const std::vector<double>& dir);

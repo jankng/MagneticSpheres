@@ -7,23 +7,27 @@
 #include <cmath>
 
 conjgrad::conjgrad(std::vector<double>* conf) : config(*conf) {
-    compute_gradient(-1);
+    compute_gradient(-1, 0);
 }
 
 conjgrad::conjgrad(int n) {
     cluster cl(n);
     cl.config_to_vec(&config);
-    compute_gradient(-1);
+    compute_gradient(-1, 0);
 }
 
 conjgrad::conjgrad(cluster* cl){
     cl->config_to_vec(&config);
-    compute_gradient(-1);
 }
 
-void conjgrad::compute_gradient(int i) {
+void conjgrad::compute_gradient(int i, int mode) {
     cluster cl(config);
-    cl.compute_energy_gradient(&grad, i);
+    if(mode == 0)
+        cl.compute_energy_gradient(&grad, i);
+    else if(mode == 1)
+        cl.compute_coordinate_gradient(&grad, i);
+    else if(mode == 2)
+        cl.compute_angle_gradient(&grad, i);
 }
 
 double conjgrad::compute_energy() {
@@ -114,7 +118,7 @@ void conjgrad::minimize_simultaneous() {
 
         go_in_direction(t, r);
         std::vector<double> grad_old = grad;
-        compute_gradient(-1);
+        compute_gradient(-1, 0);
 
         double gamma = misc::dot_product(grad, grad) / misc::dot_product(grad_old, grad_old);
         for(int i = 0; i<r.size(); i++){
@@ -131,17 +135,22 @@ void conjgrad::minimize_simultaneous() {
 
 void conjgrad::dosomething() {
 
-
-    for(int i = 0; i<3; i++){
-        cluster cl(config);
-        cl.print();
+    for(int i = 1; i<7; i++){
+        compute_gradient(i, 1);
         print_energy_in_direction(&grad);
         double t = minimize_in_direction(grad);
         go_in_direction(t, grad);
-        compute_gradient(-1);
+        cluster cl(config);
+        cl.print();
+
+
+        compute_gradient(i, 2);
+        print_energy_in_direction(&grad);
+        t = minimize_in_direction(grad);
+        go_in_direction(t, grad);
+        cl = cluster(config);
+        cl.print();
     }
-    cluster cl(config);
-    cl.print();
 
     //print_energy_in_direction(&grad);
 
