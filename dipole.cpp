@@ -124,11 +124,11 @@ bool dipole::is_in_bounds() {
     bool flag = true;
 
 
-    if(r[0] < 0 || r[0] > 10)
+    if(r[0] < 0 || r[0] > 50)
         flag = false;
-    if(r[1] < 0 || r[1] > 10)
+    if(r[1] < 0 || r[1] > 50)
         flag = false;
-    if(r[2] < 0 || r[2] > 16)
+    if(r[2] < 0 || r[2] > 50)
         flag = false;
 
 
@@ -141,5 +141,11 @@ std::string dipole::to_string(char sep) {
         << m[0] << sep << m[1] << sep << m[2];
 
     return ret.str();
+}
+
+dipole::dipole(double x, double y, double z, double m1, double m2, double m3) {
+    this->r = {x, y, z};
+    this->m = {m1, m2, m3};
+
 }
 

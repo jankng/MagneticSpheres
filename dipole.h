@@ -30,6 +30,7 @@ public:
 
     // creates dipole with all DOFs defined
     dipole(double x, double y, double z, double phi, double theta);
+    dipole(double x, double y, double z, double m1, double m2, double m3);
     explicit dipole(const std::vector<double>& coords);
 
     //getters

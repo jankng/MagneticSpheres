@@ -32,10 +32,17 @@ private:
     void make_cube();
     void make_plane();
     void make_other();
+
+    // helper functions for gradient
+    double gradient_dx(int i, int x);
+    double gradient_dtheta(int i);
+    double gradient_dphi(int i);
+
 public:
     cluster(){}
     // create cluster from given config
     explicit cluster(const std::vector<dipole> &config);
+    explicit cluster(const std::vector<double> &config);
 
     // generate random cluster of cluster_size n
     explicit cluster(int n);
@@ -47,7 +54,7 @@ public:
     cluster(const cluster& ori);
 
     //getters
-    std::vector<dipole> get_config(){return config;}
+    void config_to_vec(std::vector<double>* target);
     int get_size(){return cluster_size;}
     shape get_shape(){return cluster_shape;}
     dipole* get_dipole_by_ref(int id);
@@ -59,6 +66,9 @@ public:
 
     // computes energy and sets private 'energy' variable
     double compute_energy();
+    void compute_energy_gradient(std::vector<double>* ret, int index);
+    void compute_angle_gradient(std::vector<double>* ret, int index);
+    void compute_coordinate_gradient(std::vector<double>* ret, int index);
 };
 
 

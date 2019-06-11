@@ -1,0 +1,6 @@
+- fix coordinates for first 6 degrees of freedom
+- move each sphere separately
+
+code cleanup:
+- second cluster class (?)
+- use pointers rather than returning non primitive types.

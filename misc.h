@@ -21,6 +21,8 @@ public:
 
     // math functions
     static double dot_product(const std::vector<double>& u, const std::vector<double>& v);
+    static double mod1(double d);
+    static double modn(double d, double n);
 
     // functions for random numbers
     static void setup_static_rng();
