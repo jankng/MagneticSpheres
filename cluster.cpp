@@ -93,21 +93,26 @@ double cluster::compute_energy() {
 
             std::vector<double> rij = config[i].vector_to(config[j]);
             double r = config[i].distance_to(config[j]);
+            bool crashed = (r < diameter);
 
-            if(!(config[i].is_in_bounds()) || !(config[j].is_in_bounds())) {
+            if(r == 0) {
                 //std::cout << "Spheres crashed into each other" << std::endl;
-                //return std::numeric_limits<double>::max();
+                return std::numeric_limits<double>::max();
             }
 
-            if(r - diameter < 0)
-                ret -= penalty*(r-diameter);
+            // NEGATIVELY defined nominator (E = nom/denom, NOT E = -1*nom/denom!)
+            double nominator = (misc::dot_product(mi, mj) - 3.0* misc::dot_product(mi, rij)* misc::dot_product(mj, rij) / pow(r, 2));
 
-            // TODO check diameter implementation
-            ret += (misc::dot_product(mi, mj) - 3* misc::dot_product(mi, rij)* misc::dot_product(mj, rij) / pow(r, 2))
-                    / pow(r, 3);
+            if(crashed){
+                ret += nominator * (2.0 - 1.0 / pow(r, 3));
+            } else{
+                ret += nominator / pow(r, 3);
+            }
+
         }
 
-        ret += GRAVITATION*ri[2];
+        if(ri[2] > 0)
+            ret += GRAVITATION*ri[2];
 
         for(int i = 0; i<3; i++){
             if(ri[i] > 50)
@@ -191,6 +196,7 @@ void cluster::write_to_file(const std::string& filename) {
 }
 
 void cluster::compute_energy_gradient(std::vector<double>* ret, int index) {
+    ret->clear();
     int components = cluster_size *5;
     ret->reserve(components);
 
@@ -217,6 +223,7 @@ void cluster::compute_energy_gradient(std::vector<double>* ret, int index) {
 }
 
 void cluster::compute_angle_gradient(std::vector<double>* ret, int index){
+    ret->clear();
     int components = cluster_size *5;
     ret->reserve(components);
 
@@ -241,6 +248,7 @@ void cluster::compute_angle_gradient(std::vector<double>* ret, int index){
 }
 
 void cluster::compute_coordinate_gradient(std::vector<double>* ret, int index){
+    ret->clear();
     int components = cluster_size *5;
     ret->reserve(components);
 
@@ -290,13 +298,15 @@ double cluster::gradient_dx(int i, int x) {
         double d_nom = 2.0*(rj[x] - ri[x])*misc::dot_product(mi, mj) - 3.0*(mix*misc::dot_product(mj, rij) + mjx*misc::dot_product(mj, rij));
         double d_denom = -5.0*(rj[x] - ri[x])*pow(r, -7);
 
-        res += (nom*d_denom + d_nom*denom) / (2*cluster_size*pow(diameter, 3));
 
-        if(r < diameter)
-            res += -1.0*penalty * (rj[x] - ri[x]) / r;
+        bool crashed = r < diameter;
+        if(crashed)
+            res += 2*d_nom - (nom*d_denom + d_nom*denom);
+        else
+            res += (nom*d_denom + d_nom*denom);
     }
 
-    //res = res / (cluster_size*pow(diameter, 3));
+    res = res / (2*cluster_size*pow(diameter, 3));
 
     if(ri[x] > 50)
         res += penalty;
@@ -304,7 +314,7 @@ double cluster::gradient_dx(int i, int x) {
         res -= penalty;
 
     //gravity
-    if(x == 2)
+    if(x == 2 && ri[x] > 0)
         res += GRAVITATION;
 
     return res;
