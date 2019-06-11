@@ -18,6 +18,7 @@ conjgrad::conjgrad(int n) {
 
 conjgrad::conjgrad(cluster* cl){
     cl->config_to_vec(&config);
+    compute_gradient(-1, 0);
 }
 
 void conjgrad::compute_gradient(int i, int mode) {
@@ -50,7 +51,7 @@ double conjgrad::compute_energy_in_direction(double t, const std::vector<double>
 void conjgrad::print_energy_in_direction(std::vector<double>* dir) {
     LOG("t \t E(t)");
     for(int t = -5; t < 6; t++)
-        std::cout << (double) t / 100 << "\t" << compute_energy_in_direction((double) t / 100, *dir) << std::endl;
+        std::cout << (double) t / 10 << "\t" << compute_energy_in_direction((double) t / 10, *dir) << std::endl;
     //double trash = minimize_in_direction(grad);
 }
 
@@ -109,14 +110,18 @@ void conjgrad::go_in_direction(double t, const std::vector<double>& dir) {
 }
 
 void conjgrad::minimize_simultaneous() {
-    int j = 1;
+    int j = 0;
     std::vector<double> r  = grad;
 
-    while(j < 1000 && misc::dot_product(grad, grad) > 0.001){
+    while(j < 1000 && misc::dot_product(r, r) > 0.1){
         print_energy_in_direction(&r);
         double t = minimize_in_direction(r);
 
         go_in_direction(t, r);
+
+        cluster cl(config);
+        cl.print();
+
         std::vector<double> grad_old = grad;
         compute_gradient(-1, 0);
 
@@ -135,23 +140,36 @@ void conjgrad::minimize_simultaneous() {
 
 void conjgrad::dosomething() {
 
-    for(int i = 1; i<7; i++){
-        compute_gradient(i, 1);
-        print_energy_in_direction(&grad);
-        double t = minimize_in_direction(grad);
-        go_in_direction(t, grad);
-        cluster cl(config);
-        cl.print();
+    cluster cl(config);
+    cl.print();
+
+    double min = 200;
+    for(int j = 0; j<100; j++) {
+        for (int i = 1; i < 7; i++) {
+            compute_gradient(i, 1);
+            print_energy_in_direction(&grad);
+            double t = minimize_in_direction(grad);
+            go_in_direction(t, grad);
 
 
-        compute_gradient(i, 2);
-        print_energy_in_direction(&grad);
-        t = minimize_in_direction(grad);
-        go_in_direction(t, grad);
-        cl = cluster(config);
-        cl.print();
+            compute_gradient(i, 2);
+            print_energy_in_direction(&grad);
+            t = minimize_in_direction(grad);
+            go_in_direction(t, grad);
+
+            cl = cluster(config);
+            double nrg = cl.compute_energy();
+            if(nrg < min){
+                min = nrg;
+                cl.print();
+            }
+        }
     }
 
+    cl = cluster(config);
+    cl.print();
+
     //print_energy_in_direction(&grad);
+
 
 }
