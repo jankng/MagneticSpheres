@@ -11,9 +11,19 @@
 
 #include "cluster.h"
 
+//Best parameters for simultaneous
+/*
 #define ITERS_FIXED_T 1000
 #define STEP_SIZE 0.1
 #define INITIAL_T 10
+#define MU_T 1.001
+#define T_MIN 0.0005
+*/
+
+//Parameters for independent
+#define ITERS_FIXED_T 1000
+#define STEP_SIZE 0.1
+#define INITIAL_T 0.001
 #define MU_T 1.001
 #define T_MIN 0.0005
 
@@ -40,6 +50,7 @@ private:
     static void take_step_no_constraints(const gsl_rng *r, void *xp, double step_size);
     static void take_step_fixed_ends(const gsl_rng *r, void *xp, double step_size);
     static void take_step_rigid_body(const gsl_rng *r, void *xp, double step_size);
+    static void take_step_independent(const gsl_rng *r, void *xp, double step_size);
 
 
 

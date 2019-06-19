@@ -28,7 +28,7 @@ void minimize(int n){
         metropolis candidate(8);
         candidate.start_siman();
 
-        double e_candidate = candidate.get_cluster()->compute_energy();
+        double e_candidate = candidate.get_cluster()->compute_energy_for_gradient();
         if(e_candidate < e_min){
             e_min = e_candidate;
             std::string filename = "t" + std::to_string(n) + "i" + std::to_string(i) +
@@ -53,7 +53,7 @@ my_f (const gsl_vector *v, void *params)
     }
 
     cluster cl(coords);
-    return cl.compute_energy();
+    return cl.compute_energy_for_gradient();
 }
 
 /* The gradient of f, df = (df/dx, df/dy). */
@@ -188,15 +188,13 @@ int main() {
     conjgrad c(chain);
     //c.print_energy_in_direction(nullptr);
     //c.minimize_simultaneous();
-    c.dosomething();
+    c.minimize_single_dipoles();
     //c.minimize_simultaneous();
 
-    //cluster* chain = make_perfect_chain(8);
-    //chain->print();
     //metropolis m(chain);
     //m.enable_verbose_mode();
     //m.start_siman();
-    //chain->print();
+    //m.get_cluster()->print();
 
     misc::delete_static_rng();
     return 0;

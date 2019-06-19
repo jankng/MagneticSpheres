@@ -31,7 +31,7 @@ public:
 
     void print_energy_in_direction(std::vector<double>* dir);
 
-    void dosomething();
+    void minimize_single_dipoles();
 };
 
 

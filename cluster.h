@@ -66,9 +66,14 @@ public:
 
     // computes energy and sets private 'energy' variable
     double compute_energy();
+    double compute_energy_for_metropolis();
+    double compute_energy_for_gradient();
     void compute_energy_gradient(std::vector<double>* ret, int index);
     void compute_angle_gradient(std::vector<double>* ret, int index);
     void compute_coordinate_gradient(std::vector<double>* ret, int index);
+
+    // other
+    bool is_valid();
 };
 
 

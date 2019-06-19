@@ -79,7 +79,68 @@ void cluster::print() {
 
 }
 
-double cluster::compute_energy() {
+double cluster::compute_energy(){
+    double ret = 0;
+
+    for(int i = 0; i<cluster_size; i++){
+        std::vector<double> mi = config[i].get_m();
+        std::vector<double> ri = config[i].get_r();
+
+        for(int j = 0; j<i; j++){
+            std::vector<double> mj = config[j].get_m();
+            std::vector<double> rj = config[j].get_r();
+            std::vector<double> rij = config[i].vector_to(config[j]);
+            double r = config[i].distance_to(config[j]);
+
+            // TODO check diameter implementation
+            ret += (misc::dot_product(mi, mj) - 3* misc::dot_product(mi, rij)* misc::dot_product(mj, rij) / pow(r, 2))
+                   / pow(r, 3);
+        }
+
+        if(ri[2] > 0)
+            ret += GRAVITATION*ri[2];
+
+    }
+
+    // multiply by 1/(U_up_up * n)
+    ret *= pow(diameter, 3) / (cluster_size * pow(DIPOLE_DEFAULT_M, 2));
+    return ret;
+}
+
+double cluster::compute_energy_for_metropolis(){
+    double ret = 0;
+
+    for(int i = 0; i<cluster_size; i++){
+        std::vector<double> mi = config[i].get_m();
+        std::vector<double> ri = config[i].get_r();
+
+        for(int j = 0; j<i; j++){
+            std::vector<double> mj = config[j].get_m();
+            std::vector<double> rj = config[j].get_r();
+            std::vector<double> rij = config[i].vector_to(config[j]);
+            double r = config[i].distance_to(config[j]);
+
+            if(r + 0.01 < diameter || !(config[i].is_in_bounds()) || !(config[j].is_in_bounds())) {
+                //std::cout << "Spheres crashed into each other" << std::endl;
+                return std::numeric_limits<double>::max();
+            }
+
+            // TODO check diameter implementation
+            ret += (misc::dot_product(mi, mj) - 3* misc::dot_product(mi, rij)* misc::dot_product(mj, rij) / pow(r, 2))
+            / pow(r, 3);
+        }
+
+
+        if(ri[2] > 0)
+            ret += GRAVITATION*ri[2];
+    }
+
+    // multiply by 1/(U_up_up * n)
+    ret *= pow(diameter, 3) / (cluster_size * pow(DIPOLE_DEFAULT_M, 2));
+    return ret;
+}
+
+double cluster::compute_energy_for_gradient() {
     double penalty = PENALTY;
     double ret = 0;
 
@@ -410,4 +471,17 @@ cluster_size(config.size() / 5), diameter(CLUSTER_DEFAULT_DIAMETER), cluster_sha
                                   misc::modn(config[5*i+4], M_PI)};
         this->config.emplace_back(dipole(dp));
     }
+}
+
+bool cluster::is_valid() {
+    for(int i = 0; i<cluster_size; i++){
+        for(int j = 0; j<i; j++){
+            double r = config[i].distance_to(config[j]);
+            if(r < diameter) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
