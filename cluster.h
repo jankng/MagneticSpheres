@@ -11,6 +11,7 @@
 #include "misc.h"
 
 #define CLUSTER_DEFAULT_DIAMETER 1
+#define CLUSTER_DEFAULT_CHAIN_HEIGHT 5
 
 typedef enum{
     cube,

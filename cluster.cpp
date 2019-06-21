@@ -39,7 +39,7 @@ void cluster::make_chain(){
     config.reserve(cluster_size);
     config = {};
     for(int i = 0; i<cluster_size; i++){
-        dipole d(0, 0, i);
+        dipole d(i, 0, CLUSTER_DEFAULT_CHAIN_HEIGHT);
         config.emplace_back(d);
     }
 }
