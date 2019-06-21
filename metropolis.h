@@ -12,20 +12,22 @@
 #include "cluster.h"
 
 //Best parameters for simultaneous
-/*
+
 #define ITERS_FIXED_T 1000
 #define STEP_SIZE 0.1
 #define INITIAL_T 10
 #define MU_T 1.001
 #define T_MIN 0.0005
-*/
+
 
 //Parameters for independent
+/*
 #define ITERS_FIXED_T 1000
 #define STEP_SIZE 0.1
 #define INITIAL_T 0.001
 #define MU_T 1.001
 #define T_MIN 0.0005
+ */
 
 class metropolis {
 private:
@@ -57,7 +59,7 @@ private:
 public:
     explicit metropolis(int n); // generates random cluster with n spheres
     explicit metropolis(cluster* cluster_given); // takes pregenerated cluster
-    metropolis(cluster* cluster_given, gsl_siman_params_t params_given);
+    metropolis(cluster* cluster_given, gsl_siman_params_t& params_given);
     ~metropolis();
 
     cluster* get_cluster(){return cl;}

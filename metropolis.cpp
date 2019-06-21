@@ -20,7 +20,7 @@ metropolis::metropolis(cluster* cluster_given):
         params{0, ITERS_FIXED_T, STEP_SIZE, 1.0, INITIAL_T, MU_T, T_MIN},
         verbose(false){}
 
-metropolis::metropolis(cluster* cluster_given, gsl_siman_params_t params_given):
+metropolis::metropolis(cluster* cluster_given, gsl_siman_params_t& params_given):
         owns_cluster(false), r(misc::get_static_rng()), cl(cluster_given), cluster_size(cl->get_size()),
         params(params_given),
         verbose(false){}

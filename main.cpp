@@ -19,133 +19,57 @@
 #include "gsledits.h"
 #include "conjgrad.h"
 
-void minimize(int n){
+void startMetropolis(int n){
+    int iterations= 250;
     double e_min = 0;
 
-    // TODO CHANGE 2 TO 250
-    for(int i = 0; i<250; i++){
-        std::cout << "Thread " << n << ", i=" << i << std::endl;
-        metropolis candidate(8);
-        candidate.start_siman();
+    //determine parameters
+    gsl_siman_params_t params_given;
+    switch(n) {
+        case 1:
+            params_given = {0, 1000, 0.1, 1.0, 10, 1.001, 0.0005};
+            break;
+        case 2:
+            params_given = {0, 1000, 0.1, 1.0, 0.001, 1.001, 0.0005};
+            break;
+        case 3:
+            params_given = {0, 1000, 0.1, 1.0, 10, 1.001, 0.00000005};
+            break;
+        default:
+            params_given = {0, ITERS_FIXED_T, STEP_SIZE, 1.0, INITIAL_T, MU_T, T_MIN};
+    }
 
-        double e_candidate = candidate.get_cluster()->compute_energy_for_gradient();
+    //start iterations
+    for(int i = 0; i<iterations; i++){
+        std::cout << "Thread " << n << ", i=" << i << std::endl;
+        auto cl = new cluster(8, chain);
+        metropolis m(cl, params_given);
+        m.start_siman();
+
+        double e_candidate = m.get_cluster()->compute_energy_for_metropolis();
         if(e_candidate < e_min){
             e_min = e_candidate;
             std::string filename = "t" + std::to_string(n) + "i" + std::to_string(i) +
                     "e" + std::to_string(e_min) + ".txt";
-            candidate.get_cluster()->write_to_file(filename);
+            m.get_cluster()->write_to_file(filename);
         }
+
+        delete cl;
     }
 
     std::cout << "Thread " << n << " ended." << std::endl;
 }
 
-/* Paraboloid centered on (p[0],p[1]), with
-   scale factors (p[2],p[3]) and minimum p[4] */
+void startMetropolisThreads(){
+    std::thread t1(startMetropolis, 1);
+    std::thread t2(startMetropolis, 2);
+    std::thread t3(startMetropolis, 3);
 
-double
-my_f (const gsl_vector *v, void *params)
-{
-    std::vector<double> coords;
-    coords.reserve(v->size);
-    for(int i = 0; i<v->size; i++){
-        coords.emplace_back(gsl_vector_get(v, i));
-    }
+    t1.join();
+    t2.join();
+    t3.join();
 
-    cluster cl(coords);
-    return cl.compute_energy_for_gradient();
-}
-
-/* The gradient of f, df = (df/dx, df/dy). */
-void
-my_df (const gsl_vector *v, void *params,
-       gsl_vector *df)
-{
-    int *p = (int *)params;
-
-    std::vector<double> coords;
-    coords.reserve(v->size);
-    for(int i = 0; i<v->size; i++){
-        coords.emplace_back(gsl_vector_get(v, i));
-    }
-
-    cluster cl(coords);
-    std::vector<double> grad;
-    cl.compute_energy_gradient(&grad, p[0]);
-
-    for(int i = 0; i<df->size; i++){
-        gsl_vector_set(df, i, grad[i]);
-    }
-}
-
-/* Compute both f and df together. */
-void
-my_fdf (const gsl_vector *x, void *params,
-        double *f, gsl_vector *df)
-{
-    *f = my_f(x, params);
-    my_df(x, params, df);
-}
-
-void conjmin(cluster* init){
-    int N = 8;
-    size_t iter = 0;
-    int status;
-
-    const gsl_multimin_fdfminimizer_type *T;
-    gsl_multimin_fdfminimizer *s;
-
-    /* Position of the minimum (1,2), scale factors
-       10,20, height 30. */
-    int par[1] = { 2 };
-
-    gsl_vector *x;
-    gsl_multimin_function_fdf my_func;
-
-    my_func.n = N*5;
-    my_func.f = my_f;
-    my_func.df = my_df;
-    my_func.fdf = my_fdf;
-    my_func.params = par;
-
-    /* Starting point, x = (5,7) */
-    x = gsl_vector_alloc (N*5);
-    std::vector<double> conf;
-    init->config_to_vec(&conf);
-    for(int i = 0; i<5*N; i++){
-        gsl_vector_set(x, i, conf[i]);
-    }
-
-    T = gsl_multimin_fdfminimizer_conjugate_fr;
-    s = gsl_multimin_fdfminimizer_alloc (T, 5*N);
-
-    gsl_multimin_fdfminimizer_set (s, &my_func, x, 0.01, 1e-4);
-
-    do
-    {
-        iter++;
-        status = gsl_multimin_fdfminimizer_iterate (s);
-
-        if (status) {
-            std::cout << "status: " << status << std::endl;
-            break;
-        }
-
-        status = gsl_multimin_test_gradient (s->gradient, 1e-3);
-
-        if (status == GSL_SUCCESS)
-            printf ("Minimum found at:\n");
-
-        printf ("%5d %.5f %.5f %10.5f\n", iter,
-                gsl_vector_get (s->x, 0),
-                gsl_vector_get (s->x, 1),
-                s->f);
-
-    }
-    while (status == GSL_CONTINUE && iter < 100);
-
-    gsl_multimin_fdfminimizer_free (s);
-    gsl_vector_free (x);
+    std::cout << "Threads joined successfully";
 }
 
 cluster* make_perfect_chain(int n){
@@ -188,13 +112,15 @@ int main() {
     conjgrad c(chain);
     //c.print_energy_in_direction(nullptr);
     //c.minimize_simultaneous();
-    c.minimize_single_dipoles();
+    //c.minimize_single_dipoles();
     //c.minimize_simultaneous();
 
     //metropolis m(chain);
     //m.enable_verbose_mode();
     //m.start_siman();
     //m.get_cluster()->print();
+
+    startMetropolisThreads();
 
     misc::delete_static_rng();
     return 0;
