@@ -112,15 +112,26 @@ int main() {
     conjgrad c(chain);
     //c.print_energy_in_direction(nullptr);
     //c.minimize_simultaneous();
-    //c.minimize_single_dipoles();
+    c.minimize_single_dipoles();
     //c.minimize_simultaneous();
+
+    conjgrad c2(chain);
+    //c.minimize_simultaneous();
+
+
+    chain->compute_energy_gradient(&grad, -1);
+
+    for(int i = 0; i<grad.size(); i+=5){
+        std::cout << grad[i] << " " << grad[i+1] << " " << grad[i+2] << " " << grad[i+3] << " " << grad[i+4] << std::endl;
+    }
+    LOG(misc::dot_product(grad, grad));
 
     //metropolis m(chain);
     //m.enable_verbose_mode();
     //m.start_siman();
     //m.get_cluster()->print();
 
-    startMetropolisThreads();
+    //startMetropolisThreads();
 
     misc::delete_static_rng();
     return 0;

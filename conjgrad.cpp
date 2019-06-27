@@ -110,7 +110,9 @@ void conjgrad::go_in_direction(double t, const std::vector<double>& dir) {
 }
 
 void conjgrad::minimize_simultaneous() {
+    LOG("Starting simultaneous minimization.");
     int j = 0;
+    compute_gradient(-1, 0);
     std::vector<double> r  = grad;
     double min = 9001;
     double nrg = 0;

@@ -261,6 +261,7 @@ void cluster::compute_energy_gradient(std::vector<double>* ret, int index) {
     int components = cluster_size *5;
     ret->reserve(components);
 
+    // TODO make dipole orientations of first and last sphere variable
     for(int i = 0; i<cluster_size; i++){
         if(i == 0 || i == cluster_size - 1){
             for(int j = 0; j<5; j++){
