@@ -22,6 +22,13 @@ private:
     double minimize_in_direction(const std::vector<double>& dir);
     void go_in_direction(double t, const std::vector<double>& dir);
 
+    //methods for bracketing the minimum
+    // TODO cite properly
+    void shft3(double& a, double& b, double& c, const double& d);
+    void SWAP(double& x, double& y);
+    double SIGN(double x, double y);
+    void mnbrak(double& ax, double& bx, double& cx, double& fa, double& fb, double& fc, const std::vector<double>& dir);
+
 public:
     explicit conjgrad(std::vector<double>* conf);
     explicit conjgrad(cluster* cl);

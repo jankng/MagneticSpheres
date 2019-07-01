@@ -83,6 +83,84 @@ cluster* make_perfect_chain(int n){
     return c;
 }
 
+double someFunc(double x){
+    return (x-5)*(x-4)*(x-3)*(x-2);
+}
+
+void shft3(double& a, double& b, double& c, const double& d){
+    a = b;
+    b = c;
+    c = d;
+}
+
+void SWAP(double& x, double& y){
+    double temp = x;
+    x = y;
+    y = temp;
+}
+
+double SIGN(double x, double y){
+    double sgn;
+    if (x == 0)
+        sgn = 0;
+    else
+        sgn = (y < 0) ? -1.0 : 1.0;
+
+    return abs(x) * sgn;
+}
+
+void mnbrak(double& ax, double& bx, double& cx, double& fa, double& fb, double& fc, double func(double)){
+    const double GOLD=1.618034,GLIMIT=100.0,TINY=1.0e-20;
+    double ulim,u,r,q,fu;
+
+    fa=func(ax);
+    fb=func(bx);
+    if (fb > fa) {
+        SWAP(ax,bx);
+        SWAP(fb,fa);
+    }
+    cx=bx+GOLD*(bx-ax);
+    fc=func(cx);
+    while (fb > fc) {
+        r=(bx-ax)*(fb-fc);
+        q=(bx-cx)*(fb-fa);
+        u=bx-((bx-cx)*q-(bx-ax)*r)/
+             (2.0*SIGN(fmax(fabs(q-r),TINY),q-r));
+        ulim=bx+GLIMIT*(cx-bx);
+        if ((bx-u)*(u-cx) > 0.0) {
+            fu=func(u);
+            if (fu < fc) {
+                ax=bx;
+                bx=u;
+                fa=fb;
+                fb=fu;
+                return;
+            } else if (fu > fb) {
+                cx=u;
+                fc=fu;
+                return;
+            }
+            u=cx+GOLD*(cx-bx);
+            fu=func(u);
+        } else if ((cx-u)*(u-ulim) > 0.0) {
+            fu=func(u);
+            if (fu < fc) {
+                shft3(bx,cx,u,cx+GOLD*(cx-bx));
+                shft3(fb,fc,fu,func(u));
+            }
+        } else if ((u-ulim)*(ulim-cx) >= 0.0) {
+            u=ulim;
+            fu=func(u);
+        } else {
+            u=cx+GOLD*(cx-bx);
+            fu=func(u);
+        }
+        shft3(ax,bx,cx,u);
+        shft3(fa,fb,fc,fu);
+    }
+
+}
+
 int main() {
     misc::setup_static_rng();
 
@@ -101,30 +179,24 @@ int main() {
 
     cluster cl(conf);
 
-    cluster* chain = make_perfect_chain(8);
+    cluster* fixed = make_perfect_chain(8);
     std::vector<double> grad;
-    chain->compute_energy_gradient(&grad, -1);
+    fixed->compute_energy_gradient(&grad, -1);
 
     for(int i = 0; i<grad.size(); i+=5){
         std::cout << grad[i] << " " << grad[i+1] << " " << grad[i+2] << " " << grad[i+3] << " " << grad[i+4] << std::endl;
     }
 
-    conjgrad c(chain);
+    auto* rnd = new cluster(8, chain);
+    conjgrad c(rnd);
     //c.print_energy_in_direction(nullptr);
-    //c.minimize_simultaneous();
-    c.minimize_single_dipoles();
-    //c.minimize_simultaneous();
-
-    conjgrad c2(chain);
+    c.minimize_simultaneous();
+    //c.minimize_single_dipoles();
     //c.minimize_simultaneous();
 
+    //conjgrad c2(chain);
+    //c.minimize_simultaneous();
 
-    chain->compute_energy_gradient(&grad, -1);
-
-    for(int i = 0; i<grad.size(); i+=5){
-        std::cout << grad[i] << " " << grad[i+1] << " " << grad[i+2] << " " << grad[i+3] << " " << grad[i+4] << std::endl;
-    }
-    LOG(misc::dot_product(grad, grad));
 
     //metropolis m(chain);
     //m.enable_verbose_mode();
@@ -132,6 +204,7 @@ int main() {
     //m.get_cluster()->print();
 
     //startMetropolisThreads();
+
 
     misc::delete_static_rng();
     return 0;

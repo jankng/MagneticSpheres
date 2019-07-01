@@ -51,7 +51,7 @@ double conjgrad::compute_energy_in_direction(double t, const std::vector<double>
 void conjgrad::print_energy_in_direction(std::vector<double>* dir) {
     LOG("t \t E(t)");
     for(int t = -5; t < 6; t++)
-        std::cout << (double) t / 100 << "\t" << compute_energy_in_direction((double) t / 100, *dir) << std::endl;
+        std::cout << (double) t / 10 << "\t" << compute_energy_in_direction((double) t / 10, *dir) << std::endl;
     //double trash = minimize_in_direction(grad);
 }
 
@@ -59,13 +59,15 @@ double conjgrad::minimize_in_direction(const std::vector<double>& dir) {
     int steps = 0;
     static double w = (3.0 - sqrt(5.0)) / 2.0;
     double x = 0;
+
+/*
     double a = -0.1;
     double b = 0;
     double c = 0;
 
     double s = 0.01;
     double d = s;
-    while(true) {
+    while(steps < 1000) {
         if (compute_energy_in_direction(d, dir) >= compute_energy_in_direction(a, dir)) {
             c = d;
             b = c / 2;
@@ -73,9 +75,15 @@ double conjgrad::minimize_in_direction(const std::vector<double>& dir) {
         } else {
             d += s;
         }
+        steps++;
     }
+*/
 
 
+    double a = -0.1, b = 0.1, c = 5, fa = 0, fb = 0, fc = 0;
+    mnbrak(a, b, c, fa, fb, fc, dir);
+
+    steps = 0;
     while(fmax(c - b, b - a) > 0.0001 && steps < 1000){
         if(b - a >= c - b){
             x = a + (1.0 - w)*(b - a);
@@ -117,8 +125,8 @@ void conjgrad::minimize_simultaneous() {
     double min = 9001;
     double nrg = 0;
 
-    while(j < 1000 && misc::dot_product(r, r) > 0.1){
-        //print_energy_in_direction(&r);
+    while(j < 8 && misc::dot_product(r, r) > 0.1){
+        print_energy_in_direction(&r);
         double t = minimize_in_direction(r);
 
         go_in_direction(t, r);
@@ -181,5 +189,84 @@ void conjgrad::minimize_single_dipoles() {
 
     //print_energy_in_direction(&grad);
 
+
+}
+
+void conjgrad::shft3(double& a, double& b, double& c, const double& d){
+    a = b;
+    b = c;
+    c = d;
+}
+
+void conjgrad::SWAP(double& x, double& y){
+    double temp = x;
+    x = y;
+    y = temp;
+}
+
+double conjgrad::SIGN(double x, double y){
+    double sgn;
+    if (x == 0)
+        sgn = 0;
+    else
+        sgn = (y < 0) ? -1.0 : 1.0;
+
+    return abs(x) * sgn;
+}
+
+void conjgrad::mnbrak(double& ax, double& bx, double& cx, double& fa, double& fb, double& fc, const std::vector<double>& dir){
+    const double GOLD=1.618034,GLIMIT=100.0,TINY=1.0e-20;
+    double ulim,u,r,q,fu;
+
+    // lambda expression to set direction constant for the rest of this function.
+    auto func = [this, dir] (double t){
+        return this->compute_energy_in_direction(t, dir);
+    };
+
+    fa=func(ax);
+    fb=func(bx);
+    if (fb > fa) {
+        SWAP(ax,bx);
+        SWAP(fb,fa);
+    }
+    cx=bx+GOLD*(bx-ax);
+    fc=func(cx);
+    while (fb > fc) {
+        r=(bx-ax)*(fb-fc);
+        q=(bx-cx)*(fb-fa);
+        u=bx-((bx-cx)*q-(bx-ax)*r)/
+             (2.0*SIGN(fmax(fabs(q-r),TINY),q-r));
+        ulim=bx+GLIMIT*(cx-bx);
+        if ((bx-u)*(u-cx) > 0.0) {
+            fu=func(u);
+            if (fu < fc) {
+                ax=bx;
+                bx=u;
+                fa=fb;
+                fb=fu;
+                return;
+            } else if (fu > fb) {
+                cx=u;
+                fc=fu;
+                return;
+            }
+            u=cx+GOLD*(cx-bx);
+            fu=func(u);
+        } else if ((cx-u)*(u-ulim) > 0.0) {
+            fu=func(u);
+            if (fu < fc) {
+                shft3(bx,cx,u,cx+GOLD*(cx-bx));
+                shft3(fb,fc,fu,func(u));
+            }
+        } else if ((u-ulim)*(ulim-cx) >= 0.0) {
+            u=ulim;
+            fu=func(u);
+        } else {
+            u=cx+GOLD*(cx-bx);
+            fu=func(u);
+        }
+        shft3(ax,bx,cx,u);
+        shft3(fa,fb,fc,fu);
+    }
 
 }

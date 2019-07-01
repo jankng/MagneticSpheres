@@ -164,7 +164,7 @@ double cluster::compute_energy_for_gradient() {
             // NEGATIVELY defined nominator (E = nom/denom, NOT E = -1*nom/denom!)
             double nominator = (misc::dot_product(mi, mj) - 3.0* misc::dot_product(mi, rij)* misc::dot_product(mj, rij) / pow(r, 2));
 
-            if(crashed){
+            if(crashed && nominator < 0){
                 ret += nominator * (2.0 - 1.0 / pow(r, 3));
             } else{
                 ret += nominator / pow(r, 3);
@@ -264,9 +264,14 @@ void cluster::compute_energy_gradient(std::vector<double>* ret, int index) {
     // TODO make dipole orientations of first and last sphere variable
     for(int i = 0; i<cluster_size; i++){
         if(i == 0 || i == cluster_size - 1){
-            for(int j = 0; j<5; j++){
-                ret->emplace_back(0.0);
-            }
+            //for(int j = 0; j<5; j++){
+               // ret->emplace_back(0.0);
+            //}
+            ret->emplace_back(0.0);
+            ret->emplace_back(0.0);
+            ret->emplace_back(0.0);
+            ret->emplace_back(gradient_dphi(i));
+            ret->emplace_back(gradient_dtheta(i));
         }
         else if(i == index || index == -1) {
             ret->emplace_back(gradient_dx(i, 0));
@@ -362,7 +367,7 @@ double cluster::gradient_dx(int i, int x) {
 
 
         bool crashed = r < diameter;
-        if(crashed)
+        if(crashed && nom < 0)
             res += 2*d_nom - (nom*d_denom + d_nom*denom);
         else
             res += (nom*d_denom + d_nom*denom);
