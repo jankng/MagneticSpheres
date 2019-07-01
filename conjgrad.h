@@ -34,6 +34,8 @@ public:
     explicit conjgrad(cluster* cl);
     explicit conjgrad(int n);
 
+    std::vector<double> getConfig(){return config;}
+
     void minimize_simultaneous();
 
     void print_energy_in_direction(std::vector<double>* dir);

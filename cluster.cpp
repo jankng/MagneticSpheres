@@ -13,7 +13,7 @@
 //#define RESULTS_DIR "/home/jan/Desktop/"
 
 #define PENALTY 3
-#define GRAVITATION 0.5
+#define GRAVITATION 0.1
 
 cluster::cluster(int n) {
     cluster_shape = other;
@@ -166,6 +166,7 @@ double cluster::compute_energy_for_gradient() {
 
             if(crashed && nominator < 0){
                 ret += nominator * (2.0 - 1.0 / pow(r, 3));
+                //return std::numeric_limits<double>::max();
             } else{
                 ret += nominator / pow(r, 3);
             }

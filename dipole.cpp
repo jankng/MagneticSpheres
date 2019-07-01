@@ -27,7 +27,7 @@ void dipole::set_m(double phi, double theta, double m_length) {
     }
 
     if(theta < 0 || theta >= M_PI){
-        std::cout << "Phi has to be in [0, Pi)" << std::endl;
+        std::cout << "Theta has to be in [0, Pi)" << std::endl;
         return;
     }
 
@@ -146,6 +146,13 @@ std::string dipole::to_string(char sep) {
 dipole::dipole(double x, double y, double z, double m1, double m2, double m3) {
     this->r = {x, y, z};
     this->m = {m1, m2, m3};
+    this->x = x;
+    this->y = y;
+    this->z = z;
+
+    double length = sqrt(m1*m1 + m2*m2 + m3*m3);
+    this->phi = atan(m2 / m1);
+    this->theta = acos(m3 / length);
 
 }
 

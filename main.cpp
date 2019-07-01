@@ -75,13 +75,27 @@ void startMetropolisThreads(){
 cluster* make_perfect_chain(int n){
     std::vector<dipole> dps;
     for(int i = 0; i<n; i++){
-        dipole d(i, 0, 3, 0, M_PI / 2.0);
+        dipole d(i, 0, 5, 0, M_PI / 2.0);
         dps.emplace_back(d);
     }
 
     cluster* c = new cluster(dps);
     return c;
 }
+
+cluster* make_random_chain(int n){
+    std::vector<dipole> dps;
+    for(int i = 0; i<n; i++){
+        double angle = misc::random_simple() * 2.0 * M_PI;
+
+        dipole d(i, 0, 5, cos(angle), 0, sin(angle));
+        dps.emplace_back(d);
+    }
+
+    cluster* c = new cluster(dps);
+    return c;
+}
+
 
 double someFunc(double x){
     return (x-5)*(x-4)*(x-3)*(x-2);
@@ -161,6 +175,26 @@ void mnbrak(double& ax, double& bx, double& cx, double& fa, double& fb, double& 
 
 }
 
+void test(){
+    double min = 100;
+
+    for(int i = 0; i<1000000; i++){
+        cluster* candidate = make_random_chain(8);
+        conjgrad cand(candidate);
+        cand.minimize_simultaneous();
+
+        cluster cl(cand.getConfig());
+        double nrg = cl.compute_energy_for_gradient();
+        if (nrg < min){
+            min = nrg;
+            std::cout << "New optimal cluster. E, is valid?: " << nrg << "  " << cl.is_valid() << std::endl;
+            cl.print();
+        }
+
+        delete candidate;
+    }
+}
+
 int main() {
     misc::setup_static_rng();
 
@@ -187,10 +221,11 @@ int main() {
         std::cout << grad[i] << " " << grad[i+1] << " " << grad[i+2] << " " << grad[i+3] << " " << grad[i+4] << std::endl;
     }
 
-    auto* rnd = new cluster(8, chain);
-    conjgrad c(rnd);
+    auto* rnd = make_random_chain(8);
+    //rnd->print();
+    //conjgrad c(fixed);
     //c.print_energy_in_direction(nullptr);
-    c.minimize_simultaneous();
+    //c.minimize_simultaneous();
     //c.minimize_single_dipoles();
     //c.minimize_simultaneous();
 
@@ -205,6 +240,7 @@ int main() {
 
     //startMetropolisThreads();
 
+    test();
 
     misc::delete_static_rng();
     return 0;
