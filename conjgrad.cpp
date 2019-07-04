@@ -50,8 +50,8 @@ double conjgrad::compute_energy_in_direction(double t, const std::vector<double>
 
 void conjgrad::print_energy_in_direction(std::vector<double>* dir) {
     LOG("t \t E(t)");
-    for(int t = -5; t < 6; t++)
-        std::cout << (double) t / 10 << "\t" << compute_energy_in_direction((double) t / 10, *dir) << std::endl;
+    for(int t = -100; t < 1000; t++)
+        std::cout << (double) t / 100 << "\t" << compute_energy_in_direction((double) t / 100, *dir) << std::endl;
     //double trash = minimize_in_direction(grad);
 }
 
@@ -80,7 +80,7 @@ double conjgrad::minimize_in_direction(const std::vector<double>& dir) {
 */
 
 
-    double a = -0.1, b = 0.25, c = 5, fa = 0, fb = 0, fc = 0;
+    double a = 0, b = 0.01, c = 5, fa = 0, fb = 0, fc = 0;
     mnbrak(a, b, c, fa, fb, fc, dir);
 
     steps = 0;
@@ -105,8 +105,7 @@ double conjgrad::minimize_in_direction(const std::vector<double>& dir) {
 
         steps++;
     }
-
-    //std::cout << "steps, t, nrg\t" << steps << " " << x << " " << compute_energy_in_direction(x, dir) << std::endl;
+    std::cout << "steps, t, nrg\t" << steps << " " << x << " " << compute_energy_in_direction(x, dir) << std::endl;
     return x;
 }
 
@@ -118,7 +117,7 @@ void conjgrad::go_in_direction(double t, const std::vector<double>& dir) {
 }
 
 void conjgrad::minimize_simultaneous() {
-    //LOG("Starting simultaneous minimization.");
+    LOG("Starting simultaneous minimization.");
     int j = 0;
     compute_gradient(-1, 0);
     std::vector<double> r  = grad;
@@ -126,17 +125,19 @@ void conjgrad::minimize_simultaneous() {
     double nrg = 0;
 
     while(j < 8 && misc::dot_product(r, r) > 0.001){
-        //print_energy_in_direction(&r);
+        if(j == 0)
+            print_energy_in_direction(&r);
+
         double t = minimize_in_direction(r);
 
         go_in_direction(t, r);
 
         cluster cl(config);
         nrg = cl.compute_energy_for_gradient();
-        //std::cout << "nrg, valid? " << cl.compute_energy() << " " << cl.is_valid() << std::endl;
+        std::cout << "nrg, valid? " << cl.compute_energy() << " " << cl.is_valid() << std::endl;
         if(nrg < min){
             min = nrg;
-            //cl.print();
+            cl.print();
         }
 
         std::vector<double> grad_old = grad;
@@ -151,7 +152,7 @@ void conjgrad::minimize_simultaneous() {
         j++;
     }
 
-    //std::cout << "Simultaneous minimization done after ... steps: " << j << std::endl;
+    std::cout << "Simultaneous minimization done after ... steps: " << j << std::endl;
 
 }
 

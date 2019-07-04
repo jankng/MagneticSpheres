@@ -223,9 +223,9 @@ int main() {
 
     auto* rnd = make_random_chain(8);
     //rnd->print();
-    //conjgrad c(fixed);
+    conjgrad c(rnd);
     //c.print_energy_in_direction(nullptr);
-    //c.minimize_simultaneous();
+    c.minimize_simultaneous();
     //c.minimize_single_dipoles();
     //c.minimize_simultaneous();
 
@@ -240,7 +240,7 @@ int main() {
 
     //startMetropolisThreads();
 
-    test();
+    //test();
 
     misc::delete_static_rng();
     return 0;

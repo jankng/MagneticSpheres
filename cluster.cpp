@@ -13,7 +13,7 @@
 //#define RESULTS_DIR "/home/jan/Desktop/"
 
 #define PENALTY 3
-#define GRAVITATION 0.1
+#define GRAVITATION 0.5
 
 cluster::cluster(int n) {
     cluster_shape = other;
@@ -268,7 +268,7 @@ void cluster::compute_energy_gradient(std::vector<double>* ret, int index) {
             //for(int j = 0; j<5; j++){
                // ret->emplace_back(0.0);
             //}
-            ret->emplace_back(0.0);
+            ret->emplace_back(gradient_dx(i, 0));
             ret->emplace_back(0.0);
             ret->emplace_back(0.0);
             ret->emplace_back(gradient_dphi(i));
@@ -369,9 +369,9 @@ double cluster::gradient_dx(int i, int x) {
 
         bool crashed = r < diameter;
         if(crashed && nom < 0)
-            res += 2*d_nom - (nom*d_denom + d_nom*denom);
+            res -= 2*d_nom - (nom*d_denom + d_nom*denom);
         else
-            res += (nom*d_denom + d_nom*denom);
+            res -= (nom*d_denom + d_nom*denom);
     }
 
     res = res / (2*cluster_size*pow(diameter, 3));
