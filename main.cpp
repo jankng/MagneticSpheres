@@ -15,6 +15,7 @@
 #include "dipole.h"
 #include "cluster.h"
 #include "metropolis.h"
+#include "acmetropolis.h"
 #include "misc.h"
 #include "gsledits.h"
 #include "conjgrad.h"
@@ -223,9 +224,9 @@ int main() {
 
     auto* rnd = make_random_chain(8);
     //rnd->print();
-    conjgrad c(rnd);
+    //conjgrad c(fixed);
     //c.print_energy_in_direction(nullptr);
-    c.minimize_simultaneous();
+    //c.minimize_simultaneous();
     //c.minimize_single_dipoles();
     //c.minimize_simultaneous();
 
@@ -233,10 +234,13 @@ int main() {
     //c.minimize_simultaneous();
 
 
-    //metropolis m(chain);
-    //m.enable_verbose_mode();
-    //m.start_siman();
-    //m.get_cluster()->print();
+    acmetropolis m(8);
+    m.enable_verbose_mode();
+    m.start_siman();
+    cluster res;
+    acmetropolis::ac_to_cluster(*(m.get_cluster()), &res);
+    res.print();
+    std::cout << res.compute_energy() << std::endl;
 
     //startMetropolisThreads();
 

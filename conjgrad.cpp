@@ -50,8 +50,8 @@ double conjgrad::compute_energy_in_direction(double t, const std::vector<double>
 
 void conjgrad::print_energy_in_direction(std::vector<double>* dir) {
     LOG("t \t E(t)");
-    for(int t = -100; t < 1000; t++)
-        std::cout << (double) t / 100 << "\t" << compute_energy_in_direction((double) t / 100, *dir) << std::endl;
+    for(int t = -100; t < 100; t++)
+        std::cout << (double) t / 10 << "\t" << compute_energy_in_direction((double) t / 10, *dir) << std::endl;
     //double trash = minimize_in_direction(grad);
 }
 

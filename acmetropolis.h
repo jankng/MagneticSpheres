@@ -1,15 +1,18 @@
 //
-// Created by jkoenig on 09/04/19.
+// Created by jan on 7/9/19.
 //
 
-#ifndef MAGNETICSPHERES_METROPOLIS_H
-#define MAGNETICSPHERES_METROPOLIS_H
+#ifndef MAGNETICSPHERES_ACMETROPOLIS_H
+#define MAGNETICSPHERES_ACMETROPOLIS_H
+
 
 #include <memory>
+#include <algorithm>
 
 #include <gsl/gsl_siman.h>
 
 #include "cluster.h"
+#include "dipole.h"
 
 //Best parameters for simultaneous
 
@@ -29,11 +32,18 @@
 #define T_MIN 0.0005
  */
 
-class metropolis {
+struct acconfig{
+    int n;
+    std::vector<double> angs;
+    std::vector<double> dips;
+};
+
+
+class acmetropolis {
 private:
     bool owns_cluster;
     gsl_rng* r;
-    cluster* cl;
+    acconfig* cfg;
     int cluster_size;
     gsl_siman_params_t params;
     bool verbose;
@@ -46,31 +56,27 @@ private:
     static double mod1(double x);
     static void print_state(void* xp);
     static double energy_func(void *xp);
-    static double energy_func_angular_coords(void *xp);
 
     // step functions
     static void take_step(const gsl_rng *r, void *xp, double step_size);
-    static void take_step_no_constraints(const gsl_rng *r, void *xp, double step_size);
-    static void take_step_fixed_ends(const gsl_rng *r, void *xp, double step_size);
-    static void take_step_rigid_body(const gsl_rng *r, void *xp, double step_size);
-    static void take_step_independent(const gsl_rng *r, void *xp, double step_size);
-    static void take_step_angular_coords(const gsl_rng *r, void *xp, double step_size);
+
 
 
 
 public:
-    explicit metropolis(int n); // generates random cluster with n spheres
-    explicit metropolis(cluster* cluster_given); // takes pregenerated cluster
-    metropolis(cluster* cluster_given, gsl_siman_params_t& params_given);
-    ~metropolis();
+    explicit acmetropolis(int n); // generates random cluster with n spheres
+    ~acmetropolis();
 
-    cluster* get_cluster(){return cl;}
+    acconfig* get_cluster(){return cfg;}
 
     void start_siman();
 
     void enable_verbose_mode(){verbose = true;}
     void disable_verbose_mode(){verbose = false;}
+
+    // conversion to cluster
+    static void ac_to_cluster(acconfig& cfg, cluster* cl);
 };
 
 
-#endif //MAGNETICSPHERES_METROPOLIS_H
+#endif //MAGNETICSPHERES_ACMETROPOLIS_H

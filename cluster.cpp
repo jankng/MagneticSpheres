@@ -13,7 +13,7 @@
 //#define RESULTS_DIR "/home/jan/Desktop/"
 
 #define PENALTY 3
-#define GRAVITATION 0.5
+#define GRAVITATION 1
 
 cluster::cluster(int n) {
     cluster_shape = other;
@@ -97,6 +97,7 @@ double cluster::compute_energy(){
                    / pow(r, 3);
         }
 
+        // TODO pull out of loop
         if(ri[2] > 0)
             ret += GRAVITATION*ri[2];
 
@@ -108,6 +109,9 @@ double cluster::compute_energy(){
 }
 
 double cluster::compute_energy_for_metropolis(){
+    //if(config[0].distance_to(config[cluster_size-1]) < cluster_size - 3)
+        //return std::numeric_limits<double>::max();
+
     double ret = 0;
 
     for(int i = 0; i<cluster_size; i++){
@@ -120,7 +124,7 @@ double cluster::compute_energy_for_metropolis(){
             std::vector<double> rij = config[i].vector_to(config[j]);
             double r = config[i].distance_to(config[j]);
 
-            if(r + 0.01 < diameter || !(config[i].is_in_bounds()) || !(config[j].is_in_bounds())) {
+            if(r + 0.01 < diameter){// || !(config[i].is_in_bounds()) || !(config[j].is_in_bounds())) {
                 //std::cout << "Spheres crashed into each other" << std::endl;
                 return std::numeric_limits<double>::max();
             }
@@ -268,7 +272,8 @@ void cluster::compute_energy_gradient(std::vector<double>* ret, int index) {
             //for(int j = 0; j<5; j++){
                // ret->emplace_back(0.0);
             //}
-            ret->emplace_back(gradient_dx(i, 0));
+            //ret->emplace_back(gradient_dx(i, 0));
+            ret->emplace_back(0.0);
             ret->emplace_back(0.0);
             ret->emplace_back(0.0);
             ret->emplace_back(gradient_dphi(i));
@@ -363,15 +368,15 @@ double cluster::gradient_dx(int i, int x) {
         double nom = misc::dot_product(mi, mj)*pow(r, 2) - 3*misc::dot_product(mi, rij)* misc::dot_product(mj, rij);
         double denom = pow(r, -5);
 
-        double d_nom = 2.0*(rj[x] - ri[x])*misc::dot_product(mi, mj) - 3.0*(mix*misc::dot_product(mj, rij) + mjx*misc::dot_product(mj, rij));
-        double d_denom = -5.0*(rj[x] - ri[x])*pow(r, -7);
+        double d_nom = -2.0*(rj[x] - ri[x])*misc::dot_product(mi, mj) + 3.0*(mix*misc::dot_product(mj, rij) + mjx*misc::dot_product(mi, rij));
+        double d_denom = 5.0*(rj[x] - ri[x])*pow(r, -7);
 
 
         bool crashed = r < diameter;
         if(crashed && nom < 0)
-            res -= 2*d_nom - (nom*d_denom + d_nom*denom);
+            res += 2*d_nom - (nom*d_denom + d_nom*denom);
         else
-            res -= (nom*d_denom + d_nom*denom);
+            res += (nom*d_denom + d_nom*denom);
     }
 
     res = res / (2*cluster_size*pow(diameter, 3));
