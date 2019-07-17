@@ -13,7 +13,7 @@
 //#define RESULTS_DIR "/home/jan/Desktop/"
 
 #define PENALTY 3
-#define GRAVITATION 1
+#define GRAVITATION 0.5
 
 cluster::cluster(int n) {
     cluster_shape = other;
