@@ -1,6 +1,20 @@
-- fix coordinates for first 6 degrees of freedom
-- move each sphere separately
+General TODO:
+- outline of thesis (chapters, which results to include)
+- acquiring results
+- creating imagery
+- think of other configurations to investigate
 
-code cleanup:
-- second cluster class (?)
-- use pointers rather than returning non primitive types.
+
+parameters to vary:
+- starting config: optimal chain
+- number of spheres: 5 to 40
+- maximum distance of end links
+- metropolis parameters
+- gravitational constant
+- symmetric dipole orientation (mirroring on/off)
+- allow negative coordinates (growing chain left to right)
+
+
+improve results:
+- flatten out dipole orientation with conjugate gradient algorithm
+- readjust spatial coordinates
