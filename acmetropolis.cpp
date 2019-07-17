@@ -106,9 +106,9 @@ void acmetropolis::take_step(const gsl_rng *r, void *xp, double step_size){
         new_cfg.dips.emplace_back(cfg->dips[i] + delta_coords[i]);
     }
 
-    //for(int i = 0; i<new_cfg.dips.size() / 2; i++){
-        //new_cfg.dips[new_cfg.dips.size()- 1 - i] = -1.0*new_cfg.dips[i];
-    //}
+    for(int i = 0; i<new_cfg.dips.size() / 2; i++){
+        new_cfg.dips[new_cfg.dips.size()- 1 - i] = -1.0*new_cfg.dips[i];
+    }
 
     *cfg = new_cfg;
 

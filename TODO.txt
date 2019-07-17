@@ -1,3 +1,6 @@
+Important:
+- correct energy function (gravity is erroneously divided by n as of now)
+
 General TODO:
 - outline of thesis (chapters, which results to include)
 - acquiring results
