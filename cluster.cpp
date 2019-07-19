@@ -13,7 +13,7 @@
 //#define RESULTS_DIR "/home/jan/Desktop/"
 
 #define PENALTY 3
-#define GRAVITATION 0.5
+#define GRAVITATION 0.05
 
 cluster::cluster(int n) {
     cluster_shape = other;
@@ -92,19 +92,20 @@ double cluster::compute_energy(){
             std::vector<double> rij = config[i].vector_to(config[j]);
             double r = config[i].distance_to(config[j]);
 
-            // TODO check diameter implementation
-            ret += (misc::dot_product(mi, mj) - 3* misc::dot_product(mi, rij)* misc::dot_product(mj, rij) / pow(r, 2))
-                   / pow(r, 3);
+            double interaction = (misc::dot_product(mi, mj) - 3* misc::dot_product(mi, rij)* misc::dot_product(mj, rij) / pow(r, 2))
+                                 / pow(r, 3);
+
+            // multiply by 1/(U_up_up * n)
+            double unit_coefficient = pow(diameter, 3) / (cluster_size * pow(DIPOLE_DEFAULT_M, 2));
+
+            ret += interaction * unit_coefficient;
         }
 
-        // TODO pull out of loop
         if(ri[2] > 0)
             ret += GRAVITATION*ri[2];
 
     }
 
-    // multiply by 1/(U_up_up * n)
-    ret *= pow(diameter, 3) / (cluster_size * pow(DIPOLE_DEFAULT_M, 2));
     return ret;
 }
 
@@ -129,9 +130,13 @@ double cluster::compute_energy_for_metropolis(){
                 return std::numeric_limits<double>::max();
             }
 
-            // TODO check diameter implementation
-            ret += (misc::dot_product(mi, mj) - 3* misc::dot_product(mi, rij)* misc::dot_product(mj, rij) / pow(r, 2))
+            double interaction = (misc::dot_product(mi, mj) - 3* misc::dot_product(mi, rij)* misc::dot_product(mj, rij) / pow(r, 2))
             / pow(r, 3);
+
+            // multiply by 1/(U_up_up * n)
+            double unit_coefficient = pow(diameter, 3) / (cluster_size * pow(DIPOLE_DEFAULT_M, 2));
+
+            ret += interaction * unit_coefficient;
         }
 
 
@@ -139,8 +144,6 @@ double cluster::compute_energy_for_metropolis(){
             ret += GRAVITATION*ri[2];
     }
 
-    // multiply by 1/(U_up_up * n)
-    ret *= pow(diameter, 3) / (cluster_size * pow(DIPOLE_DEFAULT_M, 2));
     return ret;
 }
 
@@ -168,12 +171,18 @@ double cluster::compute_energy_for_gradient() {
             // NEGATIVELY defined nominator (E = nom/denom, NOT E = -1*nom/denom!)
             double nominator = (misc::dot_product(mi, mj) - 3.0* misc::dot_product(mi, rij)* misc::dot_product(mj, rij) / pow(r, 2));
 
+            double interaction = 0;
             if(crashed && nominator < 0){
-                ret += nominator * (2.0 - 1.0 / pow(r, 3));
+                interaction = nominator * (2.0 - 1.0 / pow(r, 3));
                 //return std::numeric_limits<double>::max();
             } else{
-                ret += nominator / pow(r, 3);
+                interaction = nominator / pow(r, 3);
             }
+
+            // multiply by 1/(U_up_up * n)
+            double unit_coefficient = pow(diameter, 3) / (cluster_size * pow(DIPOLE_DEFAULT_M, 2));
+
+            ret += interaction * unit_coefficient;
 
         }
 
@@ -188,8 +197,6 @@ double cluster::compute_energy_for_gradient() {
         }
     }
 
-    // multiply by 1/(U_up_up * n)
-    ret *= pow(diameter, 3) / (cluster_size * pow(DIPOLE_DEFAULT_M, 2));
     return ret;
 }
 

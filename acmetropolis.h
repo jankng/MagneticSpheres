@@ -17,7 +17,7 @@
 //Best parameters for simultaneous
 
 #define ITERS_FIXED_T 1000
-#define STEP_SIZE 0.1
+#define STEP_SIZE 64
 #define INITIAL_T 10
 #define MU_T 1.001
 #define T_MIN 0.0005
@@ -65,6 +65,7 @@ private:
 
 public:
     explicit acmetropolis(int n); // generates random cluster with n spheres
+    acmetropolis(int n, double g, double step_size, bool symmetric_dipoles, bool constraints);
     ~acmetropolis();
 
     acconfig* get_cluster(){return cfg;}
