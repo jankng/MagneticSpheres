@@ -4,21 +4,29 @@
 
 #include "acmetropolis.h"
 
+#include <string>
+#include <sstream>
+
 #include <cmath>
 #include <iostream>
 #include <gsl/gsl_randist.h>
+#include <fstream>
 
 #include "misc.h"
 #include "gsledits.h"
 
-acmetropolis::acmetropolis(int n):
-        owns_cluster(true), r(misc::get_static_rng()), cluster_size(n),
-        params{0, ITERS_FIXED_T, STEP_SIZE, 1.0, INITIAL_T, MU_T, T_MIN},
-        verbose(false){
-    this->cfg = new acconfig;
+acmetropolis::acmetropolis(int n, double h, double g, double step_size, bool symmetric_dipoles, bool constraints):
+        owns_cluster(true), r(misc::get_static_rng()), cfg(new acconfig), cluster_size(n),
+        params{0, ITERS_FIXED_T, step_size, 1.0, INITIAL_T, MU_T, T_MIN},
+        verbose(false)
+{
     cfg->angs.reserve(n/2 + n%2 - 2);
     cfg->dips.reserve(n);
     cfg->n = n;
+    cfg->height = h;
+    cfg->gravity = g;
+    cfg->symmetric_dipoles = symmetric_dipoles;
+    cfg->constraints = constraints;
 
     for(int i = 0; i<n; i++){
         cfg->dips.emplace_back(0);
@@ -54,7 +62,7 @@ double acmetropolis::energy_func(void *xp){
     auto* cfg = (acconfig*) xp;
     cluster cl;
     ac_to_cluster(*cfg, &cl);
-    return cl.compute_energy_for_metropolis();
+    return cl.compute_energy_for_metropolis(cfg->gravity, cfg->constraints);
 }
 
 double acmetropolis::mod1(double x){
@@ -70,14 +78,19 @@ void acmetropolis::take_step(const gsl_rng *r, void *xp, double step_size){
     double d_size = gsl_rng_uniform(r) * step_size;
 
     // delta of coordinates
-    int n_of_coords = cfg->angs.size() + cfg->dips.size();
+    int n_of_coords;
+    if(cfg->symmetric_dipoles)
+        n_of_coords = cfg->angs.size() + cfg->dips.size() / 2 + cfg->n % 2;
+    else
+        n_of_coords = cfg->angs.size() + cfg->dips.size();
+
     std::vector<double> delta_coords;
     delta_coords.reserve(n_of_coords);
 
     //new config will be stored here
-    acconfig new_cfg = {cfg->n};
-    new_cfg.angs.reserve(n_of_coords);
-    new_cfg.dips.reserve(n_of_coords);
+    acconfig new_cfg = {cfg->n, cfg->height, cfg->gravity, cfg->symmetric_dipoles, cfg->constraints};
+    new_cfg.angs.reserve(cfg->angs.size());
+    new_cfg.dips.reserve(cfg->dips.size());
 
     // generate distance vector and norm square
     double d_squared = 0;
@@ -93,7 +106,7 @@ void acmetropolis::take_step(const gsl_rng *r, void *xp, double step_size){
         delta_coords[i] = (delta_coords[i] * d_size) / d;
     }
 
-    // generate step
+    // generate new config
     for(int i = 0; i<cfg->angs.size(); i++){
 
         // add new coords to new config
@@ -106,8 +119,11 @@ void acmetropolis::take_step(const gsl_rng *r, void *xp, double step_size){
         new_cfg.dips.emplace_back(cfg->dips[i] + delta_coords[i]);
     }
 
-    for(int i = 0; i<new_cfg.dips.size() / 2; i++){
-        new_cfg.dips[new_cfg.dips.size()- 1 - i] = -1.0*new_cfg.dips[i];
+    // mirror dipoles if necessary
+    if(cfg->symmetric_dipoles){
+        for(int i = new_cfg.dips.size() - 1 - cfg->n % 2; i >= 0; i--){
+            new_cfg.dips.emplace_back(-1.0 * new_cfg.dips[i]);
+        }
     }
 
     *cfg = new_cfg;
@@ -148,7 +164,7 @@ void acmetropolis::ac_to_cluster(acconfig& cfg, cluster* cl) {
 
     double x = 0;
     double y = 0;
-    double z = 10;
+    double z = cfg.height;
 
     // first half
     for(int i = 0; i<cfg.n / 2; i++){
@@ -199,6 +215,38 @@ void acmetropolis::ac_to_cluster(acconfig& cfg, cluster* cl) {
 
     *cl = cluster(dp_config);
 
+}
+
+std::string acmetropolis::to_string() {
+    std::ostringstream oss;
+    cluster res;
+    ac_to_cluster(*cfg, &res);
+    double energy = res.compute_energy_for_metropolis(cfg->gravity, cfg->constraints);
+
+
+    oss << "# int n, double h, double g, double step_size, bool symmetric_dipoles, bool constraints\n";
+    oss << "# " << cfg->n << " " << cfg->height << " " << cfg->gravity << " " << params.step_size << " " << cfg->symmetric_dipoles << " " << cfg->constraints << "\n";
+    oss << "# Energy = " << energy << "\n";
+    oss << "# Rx Ry Rz Mx My Mz\n";
+    oss << res.to_string();
+
+
+    return oss.str();
+}
+
+void acmetropolis::write_to_file(const std::string& filename) {
+    std::string path = RESULTS_DIR + filename;
+    std::ofstream handler(path, std::ios_base::app);
+    if(handler.is_open()){
+        handler << to_string();
+        handler.close();
+    }
+}
+
+double acmetropolis::compute_energy() {
+    cluster res;
+    ac_to_cluster(*cfg, &res);
+    return res.compute_energy_for_metropolis(cfg->gravity, cfg->symmetric_dipoles);
 }
 
 

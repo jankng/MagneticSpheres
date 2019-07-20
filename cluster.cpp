@@ -9,11 +9,7 @@
 #include "cluster.h"
 #include "misc.h"
 
-#define RESULTS_DIR "/bigwork/jkoenig/results/"
-//#define RESULTS_DIR "/home/jan/Desktop/"
-
 #define PENALTY 3
-#define GRAVITATION 0.05
 
 cluster::cluster(int n) {
     cluster_shape = other;
@@ -79,7 +75,7 @@ void cluster::print() {
 
 }
 
-double cluster::compute_energy(){
+double cluster::compute_energy(double gravity){
     double ret = 0;
 
     for(int i = 0; i<cluster_size; i++){
@@ -102,16 +98,17 @@ double cluster::compute_energy(){
         }
 
         if(ri[2] > 0)
-            ret += GRAVITATION*ri[2];
+            ret += gravity*ri[2];
 
     }
 
     return ret;
 }
 
-double cluster::compute_energy_for_metropolis(){
-    //if(config[0].distance_to(config[cluster_size-1]) < cluster_size - 3)
-        //return std::numeric_limits<double>::max();
+double cluster::compute_energy_for_metropolis(double gravity, bool constraints){
+    if(constraints)
+        if(config[0].distance_to(config[cluster_size-1]) < cluster_size - 3)
+            return std::numeric_limits<double>::max();
 
     double ret = 0;
 
@@ -130,6 +127,13 @@ double cluster::compute_energy_for_metropolis(){
                 return std::numeric_limits<double>::max();
             }
 
+            if(constraints){
+                if(!(config[i].is_in_bounds()) || !(config[j].is_in_bounds())) {
+                    //std::cout << "Spheres crashed into each other" << std::endl;
+                    return std::numeric_limits<double>::max();
+                }
+            }
+
             double interaction = (misc::dot_product(mi, mj) - 3* misc::dot_product(mi, rij)* misc::dot_product(mj, rij) / pow(r, 2))
             / pow(r, 3);
 
@@ -141,13 +145,13 @@ double cluster::compute_energy_for_metropolis(){
 
 
         if(ri[2] > 0)
-            ret += GRAVITATION*ri[2];
+            ret += gravity*ri[2];
     }
 
     return ret;
 }
 
-double cluster::compute_energy_for_gradient() {
+double cluster::compute_energy_for_gradient(double gravity) {
     double penalty = PENALTY;
     double ret = 0;
 
@@ -187,12 +191,12 @@ double cluster::compute_energy_for_gradient() {
         }
 
         if(ri[2] > 0)
-            ret += GRAVITATION*ri[2];
+            ret += gravity*ri[2];
 
-        for(int i = 0; i<3; i++){
-            if(ri[i] > 50)
+        for(int k = 0; i<3; i++){
+            if(ri[k] > 50)
                 ret += penalty*(ri[i] - 50);
-            if(ri[i] < 0)
+            if(ri[k] < 0)
                 ret -= penalty*ri[i];
         }
     }
@@ -253,7 +257,7 @@ std::string cluster::to_string(char sep) {
     std::stringstream ret;
 
     for(int i = 0; i<cluster_size; i++){
-        ret << config[i].to_string(sep) << "\n";
+        ret << i << " " << config[i].to_string(sep) << "\n";
     }
 
     return ret.str();
@@ -395,7 +399,7 @@ double cluster::gradient_dx(int i, int x) {
 
     //gravity
     if(x == 2 && ri[x] > 0)
-        res += GRAVITATION;
+        res += CLUSTER_DEFAULT_GRAVITY;
 
     return res;
 }

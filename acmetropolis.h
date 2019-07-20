@@ -13,11 +13,12 @@
 
 #include "cluster.h"
 #include "dipole.h"
+#include "definitions.h"
 
 //Best parameters for simultaneous
 
 #define ITERS_FIXED_T 1000
-#define STEP_SIZE 64
+#define STEP_SIZE 0.1
 #define INITIAL_T 10
 #define MU_T 1.001
 #define T_MIN 0.0005
@@ -34,6 +35,10 @@
 
 struct acconfig{
     int n;
+    double height;
+    double gravity;
+    bool symmetric_dipoles;
+    bool constraints;
     std::vector<double> angs;
     std::vector<double> dips;
 };
@@ -64,8 +69,7 @@ private:
 
 
 public:
-    explicit acmetropolis(int n); // generates random cluster with n spheres
-    acmetropolis(int n, double g, double step_size, bool symmetric_dipoles, bool constraints);
+    acmetropolis(int n, double h, double g, double step_size, bool symmetric_dipoles, bool constraints);
     ~acmetropolis();
 
     acconfig* get_cluster(){return cfg;}
@@ -77,6 +81,11 @@ public:
 
     // conversion to cluster
     static void ac_to_cluster(acconfig& cfg, cluster* cl);
+
+    // output
+    double compute_energy();
+    std::string to_string();
+    void write_to_file(const std::string& filename);
 };
 
 

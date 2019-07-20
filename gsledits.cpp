@@ -186,7 +186,7 @@ namespace gsl_edits{
             free (best_x);
         }
 
-        std::cout << n_eless << "   " << n_accepts << std::endl;
+        std::cout << n_eless << " n_eless and n_accepts " << n_accepts << std::endl;
     }
 
 /* implementation of a simulated annealing algorithm with many tries */

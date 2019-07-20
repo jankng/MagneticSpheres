@@ -7,5 +7,8 @@
 
 #define LOG(x) std::cout << x << std::endl
 
+//#define RESULTS_DIR "/bigwork/jkoenig/results/"
+#define RESULTS_DIR "/home/jan/BAcode/MagneticSpheres/results/"
+
 
 #endif //MAGNETICSPHERES_DEFINITIONS_H

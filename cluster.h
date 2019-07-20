@@ -9,9 +9,11 @@
 #include <vector>
 #include "dipole.h"
 #include "misc.h"
+#include "definitions.h"
 
-#define CLUSTER_DEFAULT_DIAMETER 1
+#define CLUSTER_DEFAULT_DIAMETER 1.0
 #define CLUSTER_DEFAULT_CHAIN_HEIGHT 5
+#define CLUSTER_DEFAULT_GRAVITY 0.05
 
 typedef enum{
     cube,
@@ -66,9 +68,9 @@ public:
     void write_to_file(const std::string& filename = misc::get_time() + ".txt");
 
     // computes energy and sets private 'energy' variable
-    double compute_energy();
-    double compute_energy_for_metropolis();
-    double compute_energy_for_gradient();
+    double compute_energy(double gravity = CLUSTER_DEFAULT_GRAVITY);
+    double compute_energy_for_metropolis(double gravity = CLUSTER_DEFAULT_GRAVITY, bool constraints = false);
+    double compute_energy_for_gradient(double gravity = CLUSTER_DEFAULT_GRAVITY);
     void compute_energy_gradient(std::vector<double>* ret, int index);
     void compute_angle_gradient(std::vector<double>* ret, int index);
     void compute_coordinate_gradient(std::vector<double>* ret, int index);

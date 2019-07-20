@@ -9,7 +9,7 @@
 #include <string>
 
 #define DIPOLE_MAX_RANDOM_R 10
-#define DIPOLE_DEFAULT_M 1
+#define DIPOLE_DEFAULT_M 1.0
 
 class dipole {
 private:

@@ -20,7 +20,7 @@ improve results:
 - readjust spatial coordinates
 
 
-how to procede:
+how to proceed:
  - 10 iterations for each set of parameters.
  - then, should the 10 iterations yield different results, do more
  - after metropolis do conjugate gradient.
@@ -30,5 +30,5 @@ setting up parameters:
  - allow negative coordinates and minimum distance of end links on/off
  - vary n of spheres from 5 to 50
  - maximum step size = n, n/8, n/80
- - starting height = n
+ - starting height = n - 1
  - vary gravity from 0.01 to 1
