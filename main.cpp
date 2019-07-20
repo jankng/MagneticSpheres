@@ -35,7 +35,7 @@ void startMetropolis(int id){
             g = 0.05;
             break;
         case 3:
-            g = 0.1;
+            g = 0.125;
             break;
         default:
             g = 0.2;
@@ -99,12 +99,13 @@ int main() {
 
 
     //acmetropolis(int n, double h, double g, double step_size, bool symmetric_dipoles, bool constraints);
-    acmetropolis m(8, 8, 0.125, 0.1, true, false);
+    acmetropolis m(9, 8, 0.125, 9, true, false);
     m.enable_verbose_mode();
     m.start_siman();
     std::cout << m.to_string() << std::endl;
 
 
+    // RESET ENERGY FUNCTION!!!!
     // SET OUTPUT FILE DIRECTORY BEFORE UNCOMMENTING
     //startMetropolisThreads();
 
