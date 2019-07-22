@@ -99,7 +99,7 @@ int main() {
 
 
     //acmetropolis(int n, double h, double g, double step_size, bool symmetric_dipoles, bool constraints);
-    acmetropolis m(9, 8, 0.125, 9, true, false);
+    acmetropolis m(8, 7, 0.125, 8, true, false);
     m.enable_verbose_mode();
     m.start_siman();
     std::cout << m.to_string() << std::endl;

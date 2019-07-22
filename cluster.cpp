@@ -92,7 +92,7 @@ double cluster::compute_energy(double gravity){
                                  / pow(r, 3);
 
             // multiply by 1/(U_up_up * n)
-            double unit_coefficient = pow(diameter, 3) / (cluster_size * pow(DIPOLE_DEFAULT_M, 2));
+            double unit_coefficient = pow(diameter, 3) / pow(DIPOLE_DEFAULT_M, 2);
 
             ret += interaction * unit_coefficient;
         }
@@ -102,6 +102,7 @@ double cluster::compute_energy(double gravity){
 
     }
 
+    ret /= cluster_size;
     return ret;
 }
 
@@ -138,7 +139,7 @@ double cluster::compute_energy_for_metropolis(double gravity, bool constraints){
             / pow(r, 3);
 
             // multiply by 1/(U_up_up * n)
-            double unit_coefficient = pow(diameter, 3) / (cluster_size * pow(DIPOLE_DEFAULT_M, 2));
+            double unit_coefficient = pow(diameter, 3) / pow(DIPOLE_DEFAULT_M, 2);
 
             ret += interaction * unit_coefficient;
         }
@@ -148,6 +149,7 @@ double cluster::compute_energy_for_metropolis(double gravity, bool constraints){
             ret += gravity*ri[2];
     }
 
+    ret /= cluster_size;
     return ret;
 }
 
@@ -184,7 +186,7 @@ double cluster::compute_energy_for_gradient(double gravity) {
             }
 
             // multiply by 1/(U_up_up * n)
-            double unit_coefficient = pow(diameter, 3) / (cluster_size * pow(DIPOLE_DEFAULT_M, 2));
+            double unit_coefficient = pow(diameter, 3) / pow(DIPOLE_DEFAULT_M, 2);
 
             ret += interaction * unit_coefficient;
 
@@ -201,6 +203,7 @@ double cluster::compute_energy_for_gradient(double gravity) {
         }
     }
 
+    ret /= cluster_size;
     return ret;
 }
 
