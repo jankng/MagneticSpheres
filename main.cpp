@@ -22,20 +22,20 @@
 
 void startMetropolis(int id){
     double g = 0;
-    bool symmetric = false;
-    bool constraints = false;
+    bool symmetric = true;
+    bool constraints = true;
 
     //determine parameters
     gsl_siman_params_t params_given;
     switch(id) {
         case 1:
-            g = 0.01;
+            g = 0.1;
             break;
         case 2:
-            g = 0.05;
+            g = 0.5;
             break;
         case 3:
-            g = 0.125;
+            g = 1;
             break;
         default:
             g = 0.2;
@@ -48,8 +48,8 @@ void startMetropolis(int id){
             met.start_siman();
             double energy = met.compute_energy();
 
-            std::string filename = "n" + std::to_string(n) + "g" + std::to_string(g) +
-                                   "e" + std::to_string(energy) + "i" + std::to_string(i) + ".txt";
+            std::string filename = "n" + std::to_string(n) + "t" + std::to_string(id) + "i" + std::to_string(i) + ".txt";
+
             met.write_to_file(filename);
             std::cout << "Thread " << id << " n" << n << " i" << i << " ended." << std::endl;
         }
@@ -99,15 +99,14 @@ int main() {
 
 
     //acmetropolis(int n, double h, double g, double step_size, bool symmetric_dipoles, bool constraints);
-    acmetropolis m(8, 7, 0.125, 8, true, false);
-    m.enable_verbose_mode();
-    m.start_siman();
-    std::cout << m.to_string() << std::endl;
+    //acmetropolis m(8, 8, 1, 1, true, false);
+    //m.enable_verbose_mode();
+    //m.start_siman();
+    //std::cout << m.to_string() << std::endl;
 
 
-    // RESET ENERGY FUNCTION!!!!
     // SET OUTPUT FILE DIRECTORY BEFORE UNCOMMENTING
-    //startMetropolisThreads();
+    startMetropolisThreads();
 
     misc::delete_static_rng();
     return 0;

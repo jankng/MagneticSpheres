@@ -108,7 +108,7 @@ double cluster::compute_energy(double gravity){
 
 double cluster::compute_energy_for_metropolis(double gravity, bool constraints){
     if(constraints)
-        if(config[0].distance_to(config[cluster_size-1]) < cluster_size - 3)
+        if(config[0].distance_to(config[cluster_size-1]) < cluster_size - 2)
             return std::numeric_limits<double>::max();
 
     double ret = 0;

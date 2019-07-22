@@ -236,6 +236,7 @@ std::string acmetropolis::to_string() {
 
 void acmetropolis::write_to_file(const std::string& filename) {
     std::string path = RESULTS_DIR + filename;
+    //std::string path = filename;
     std::ofstream handler(path, std::ios_base::app);
     if(handler.is_open()){
         handler << to_string();
