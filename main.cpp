@@ -21,37 +21,39 @@
 #include "conjgrad.h"
 
 void startMetropolis(int id){
-    double g = 0;
+    double multiplier = 0;
     bool symmetric = true;
-    bool constraints = true;
+    bool constraints = false;
 
     //determine parameters
     gsl_siman_params_t params_given;
     switch(id) {
         case 1:
-            g = 0.1;
+            multiplier = 0.1;
             break;
         case 2:
-            g = 0.5;
+            multiplier = 1;
             break;
         case 3:
-            g = 1;
+            multiplier = 0.01;
             break;
         default:
-            g = 0.2;
+            multiplier = 1;
     }
 
     //start iterations
-    for(int n = 5; n <= 50; n++){
-        for(int i = 0; i < 10; i++){
-            acmetropolis met(n, 100, g, n, symmetric, constraints);
-            met.start_siman();
-            double energy = met.compute_energy();
+    for(int n = 3; n<=50; n++){
+        for(int g = 1; g <= 10; g++){
+            for(int i = 0; i < 10; i++){
+                acmetropolis met(n, 100, multiplier*g, n, symmetric, constraints);
+                met.start_siman();
+                //double energy = met.compute_energy();
+                int G = (int) (multiplier*100*g);
+                std::string filename = "n" + std::to_string(n) + "g" + std::to_string(G) + "i" + std::to_string(i) + "t.txt";
 
-            std::string filename = "n" + std::to_string(n) + "t" + std::to_string(id) + "i" + std::to_string(i) + ".txt";
-
-            met.write_to_file(filename);
-            std::cout << "Thread " << id << " n" << n << " i" << i << " ended." << std::endl;
+                met.write_to_file(filename);
+                std::cout << "Thread " << id << " n" << n << " i" << i << " ended." << std::endl;
+            }
         }
     }
 
