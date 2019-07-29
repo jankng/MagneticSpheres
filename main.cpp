@@ -23,7 +23,7 @@
 void startMetropolis(int id){
     int n = 0;
     bool symmetric = true;
-    bool constraints = false;
+    bool constraints = true;
 
     //determine parameters
     gsl_siman_params_t params_given;
