@@ -42,11 +42,11 @@ void startMetropolis(int id){
     }
 
     //start iterations
-    std::vector<int> N = {5, 8, 12, 15, 20};
+    std::vector<int> N = {8, 9};
     for(int j = 0; j< 100; j++) {
         for (int n : N) {
             for (int i = 0; i < 10; i++) {
-                acmetropolis met(n, 100, g, n, symmetric, constraints);
+                acmetropolis met(n, 100, g, 0.1, symmetric, constraints);
                 met.start_siman();
                 //double energy = met.compute_energy();
                 int G = (int) 100*g;
