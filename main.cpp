@@ -21,40 +21,37 @@
 #include "conjgrad.h"
 
 void startMetropolis(int id){
-    double multiplier = 0;
+    int n = 0;
     bool symmetric = true;
-    bool constraints = false;
+    bool constraints = true;
 
     //determine parameters
     gsl_siman_params_t params_given;
     switch(id) {
         case 1:
-            multiplier = 0.1;
+            n=8;
             break;
         case 2:
-            multiplier = 1;
+            n=9;
             break;
         case 3:
-            multiplier = 0.01;
+            n = 10;
             break;
         default:
-            multiplier = 1;
+            n = 5;
     }
 
     //start iterations
-    for(int n = 3; n<=50; n++){
-        for(int g = 1; g <= 10; g++){
-            for(int i = 0; i < 10; i++){
-                acmetropolis met(n, 100, multiplier*g, n, symmetric, constraints);
-                met.start_siman();
-                //double energy = met.compute_energy();
-                int G = (int) (multiplier*100*g);
-                std::string filename = "n" + std::to_string(n) + "g" + std::to_string(G) + "i" + std::to_string(i) + "t.txt";
+    for (int i = 0; i < 1000; i++) {
+        acmetropolis met(n, 100, 1, n, symmetric, constraints);
+        met.start_siman();
+        //double energy = met.compute_energy();
+        int G = (int) 1;
+        std::string filename =
+                "n" + std::to_string(n) + "g" + std::to_string(G) + "i" + std::to_string(i) + "d5t.txt";
 
-                met.write_to_file(filename);
-                std::cout << "Thread " << id << " n" << n << " i" << i << " ended." << std::endl;
-            }
-        }
+        met.write_to_file(filename);
+        std::cout << "Thread " << id << " n" << n << " i" << i << " ended." << std::endl;
     }
 
     std::cout << "Thread " << id << " ended." << std::endl;
@@ -63,11 +60,11 @@ void startMetropolis(int id){
 void startMetropolisThreads(){
     std::thread t1(startMetropolis, 1);
     std::thread t2(startMetropolis, 2);
-    std::thread t3(startMetropolis, 3);
+    //std::thread t3(startMetropolis, 3);
 
     t1.join();
     t2.join();
-    t3.join();
+    //t3.join();
 
     std::cout << "Threads joined successfully";
 }

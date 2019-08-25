@@ -108,7 +108,7 @@ double cluster::compute_energy(double gravity){
 
 double cluster::compute_energy_for_metropolis(double gravity, bool constraints){
     if(constraints)
-        if(config[0].distance_to(config[cluster_size-1]) < cluster_size - 2)
+        if(config[0].distance_to(config[cluster_size-1]) < 5)
             return std::numeric_limits<double>::max();
 
     double ret = 0;
@@ -128,12 +128,14 @@ double cluster::compute_energy_for_metropolis(double gravity, bool constraints){
                 return std::numeric_limits<double>::max();
             }
 
+            /*
             if(constraints){
                 if(!(config[i].is_in_bounds()) || !(config[j].is_in_bounds())) {
                     //std::cout << "Spheres crashed into each other" << std::endl;
                     return std::numeric_limits<double>::max();
                 }
             }
+             */
 
             double interaction = (misc::dot_product(mi, mj) - 3* misc::dot_product(mi, rij)* misc::dot_product(mj, rij) / pow(r, 2))
             / pow(r, 3);
