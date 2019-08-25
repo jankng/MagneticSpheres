@@ -75,7 +75,7 @@ void startMetropolisThreads(){
 cluster* make_perfect_chain(int n){
     std::vector<dipole> dps;
     for(int i = 0; i<n; i++){
-        dipole d(i, 0, 5, 0, M_PI / 2.0);
+        dipole d(i, 0, 10, 0, M_PI / 2.0);
         dps.emplace_back(d);
     }
 
@@ -108,7 +108,11 @@ int main() {
 
 
     // SET OUTPUT FILE DIRECTORY BEFORE UNCOMMENTING
-    startMetropolisThreads();
+    //startMetropolisThreads();
+
+    cluster* cl = make_perfect_chain(8);
+    conjgrad cg(cl);
+    cg.minimize_simultaneous();
 
     misc::delete_static_rng();
     return 0;

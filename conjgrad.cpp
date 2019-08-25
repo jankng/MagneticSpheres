@@ -50,8 +50,8 @@ double conjgrad::compute_energy_in_direction(double t, const std::vector<double>
 
 void conjgrad::print_energy_in_direction(std::vector<double>* dir) {
     LOG("t \t E(t)");
-    for(int t = -10; t < 10; t++)
-        std::cout << (double) t / 10 << "\t" << compute_energy_in_direction((double) t / 10, *dir) << std::endl;
+    for(int t = -200; t < 300; t++)
+        std::cout << (double) t / 100 << "\t" << compute_energy_in_direction((double) t / 100, *dir) << std::endl;
     //double trash = minimize_in_direction(grad);
 }
 
@@ -80,7 +80,7 @@ double conjgrad::minimize_in_direction(const std::vector<double>& dir) {
 */
 
 
-    double a = 0, b = 0.01, c = 5, fa = 0, fb = 0, fc = 0;
+    double a = 0, b = 1, c = 5, fa = 0, fb = 0, fc = 0;
     mnbrak(a, b, c, fa, fb, fc, dir);
 
     steps = 0;
@@ -125,6 +125,9 @@ void conjgrad::minimize_simultaneous() {
     double nrg = 0;
 
     while(j < 8 && misc::dot_product(r, r) > 0.001){
+        for (int i = 0; i<r.size(); i +=5){
+            std::cout << r[i] << " " << r[i+1] << " " << r[i+2] << std::endl;
+        }
         if(j == 0)
             print_energy_in_direction(&r);
 
@@ -145,7 +148,7 @@ void conjgrad::minimize_simultaneous() {
 
         double gamma = misc::dot_product(grad, grad) / misc::dot_product(grad_old, grad_old);
         for(int i = 0; i<r.size(); i++){
-            r[i] = grad[i] + gamma * r[i];
+            r[i] = grad[i] - gamma * r[i];
         }
 
 
@@ -165,7 +168,7 @@ void conjgrad::minimize_single_dipoles() {
     for(int j = 0; j<5; j++) {
         for (int i = 1; i < 7; i++) {
             compute_gradient(i, 1);
-            //print_energy_in_direction(&grad);
+            print_energy_in_direction(&grad);
             double t = minimize_in_direction(grad);
             go_in_direction(t, grad);
 

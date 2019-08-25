@@ -195,12 +195,6 @@ double cluster::compute_energy_for_gradient(double gravity) {
         if(ri[2] > 0)
             ret += gravity*ri[2];
 
-        for(int k = 0; i<3; i++){
-            if(ri[k] > 50)
-                ret += penalty*(ri[i] - 50);
-            if(ri[k] < 0)
-                ret -= penalty*ri[i];
-        }
     }
 
     ret /= cluster_size;
@@ -287,8 +281,8 @@ void cluster::compute_energy_gradient(std::vector<double>* ret, int index) {
                // ret->emplace_back(0.0);
             //}
             //ret->emplace_back(gradient_dx(i, 0));
-            ret->emplace_back(0.0);
-            ret->emplace_back(0.0);
+            ret->emplace_back(gradient_dx(i, 0));
+            ret->emplace_back(gradient_dx(i, 1));
             ret->emplace_back(0.0);
             ret->emplace_back(gradient_dphi(i));
             ret->emplace_back(gradient_dtheta(i));
